@@ -39,7 +39,10 @@ BEGIN
     WHERE updated."cluster" = target_cluster AND updated.holder = src.holder
     RETURNING updated.holder, updated.shard, src."numShards"
   LOOP
-    PERFORM pg_notify('shardInfo/' || r.holder, row_to_json(r) #>> '{}');
+    PERFORM pg_notify(
+      'shardInfo/' || r.holder,
+      json_build_object('shard', r.shard, 'numShards', r."numShards") #>> '{}'
+    );
   END LOOP;
 END;
 $$
