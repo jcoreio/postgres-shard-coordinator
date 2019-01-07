@@ -6,32 +6,97 @@
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 [![npm version](https://badge.fury.io/js/%40jcoreio%2Fpostgres-shard-coordinator.svg)](https://badge.fury.io/js/%40jcoreio%2Fpostgres-shard-coordinator)
 
-This is my personal skeleton for creating an ES2015 library npm package.  You are welcome to use it.
+Helps processes pick a unique shard index and determine the number of shards,
+using Postgres to coordinate registration.
 
-## Quick start
+# Introduction
 
-```sh
-npm i -g howardroark/pollinate
-pollinate https://github.com/jcoreio/postgres-shard-coordinator.git --keep-history --name <package name> --author <your name> --organization <github organization> --description <package description>
-cd <package name>
-npm i
+This is designed for any situation where batch processing needs to be divided
+between multiple processes using hash-based sharding. For example, Clarity uses
+multiple processes to handle the notification queue; each process restricts
+itself to events where
+
+```
+  knuth_hash(userId) % numShards >= (shard * MAX_USER_ID) / numShards &&
+  knuth_hash(userId) % numShards < ((shard + 1) * MAX_USER_ID) / numShards
 ```
 
-## Tools used
+Each of these processes can use `@jcoreio/postgres-shard-coordinator` to pick a unique
+`shard` index and determine the total `numShards` (number of processes) in a
+decentralized fashion that automatically adapts as processes are spawned or die.
 
-* babel 6
-* babel-preset-env
-* mocha
-* chai
-* istanbul
-* nyc
-* babel-plugin-istanbul
-* eslint
-* eslint-watch
-* flow
-* flow-watch
-* pre-commit (runs eslnt and flow)
-* semantic-release
-* Travis CI
-* Coveralls
+# Usage
 
+```
+npm i --save @jcoreio/postgres-shard-coordinator
+```
+
+## Database migration
+
+You will need to perform provided migrations to create the tables and functions
+for coordination:
+
+```js
+import { Client } from 'pg'
+import Umzug from 'umzug'
+import { umzugMigrationOptions } from '@jcoreio/postgres-shard-coordinator'
+
+export default async function migrate({ database }) {
+  const umzug = new Umzug({
+    storage: 'umzug-postgres-storage',
+    storageOptions: {
+      database,
+      relation: '"SequelizeMeta"',
+      column: 'name',
+    },
+    migrations: {
+      ...umzugMigrationOptions(),
+      params: [{ query }],
+    },
+  })
+
+  await umzug.up()
+}
+
+async function query(sql) {
+  const client = new Client(database)
+  try {
+    await client.connect()
+    migrationDebug(sql)
+    return await client.query(sql)
+  } finally {
+    await client.end()
+  }
+}
+```
+
+## Shard registration
+
+```js
+import { ShardRegistrar } from '@jcoreio/postgres-shard-coordinator'
+import requireEnv from '@jcoreio/require-env'
+import migrate from './migrate'
+
+const database = {
+  user: requireEnv('DB_USER'),
+  host: requireEnv('DB_HOST'),
+  database: requireEnv('DB_NAME'),
+  password: requireEnv('DB_PASSWORD'),
+  port: parseInt(requireEnv('DB_PORT')),
+}
+
+const registrar = new ShardRegistrar({
+  database,
+  cluster: 'clarity_notifications',
+  heartbeatInterval: 60, // seconds
+  gracePeriod: 30, // seconds
+  reshardInterval: 60, // seconds
+})
+
+registrar.on('shardChanged', ({ shard, numShards }) => {
+  // reconfigure the notification queue processor
+})
+registrar.on('error', err => console.error(err.stack))
+
+migrate({ database }).then(() => registrar.start())
+```

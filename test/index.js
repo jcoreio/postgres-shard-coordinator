@@ -12,7 +12,9 @@ describe('ShardRegistrar', function() {
   this.timeout(30000)
   let registrars = []
 
-  beforeEach(() => (registrars = []))
+  beforeEach(async function(): Promise<void> {
+    registrars = []
+  })
   afterEach(async function(): Promise<void> {
     await Promise.all(registrars.map(registrar => registrar.stop()))
   })
@@ -26,12 +28,14 @@ describe('ShardRegistrar', function() {
   it('sequential three node test', async function(): Promise<void> {
     const cluster = 'a'
     const heartbeatInterval = 1
-    const gracePeriod = 1
+    const gracePeriod = 3
+    const reshardInterval = 5
     const options = {
       database,
       cluster,
       heartbeatInterval,
       gracePeriod,
+      reshardInterval,
     }
     const registrar1 = createRegistrar(options)
     const registrar2 = createRegistrar(options)
@@ -105,7 +109,8 @@ describe('ShardRegistrar', function() {
   })
   it(`two clusters of registrars operating simultaneously`, async function(): Promise<void> {
     const heartbeatInterval = 1
-    const gracePeriod = 1
+    const gracePeriod = 3
+    const reshardInterval = 5
     const numShards = 10
     const clusterA = range(numShards).map(() =>
       createRegistrar({
@@ -113,6 +118,7 @@ describe('ShardRegistrar', function() {
         cluster: 'a',
         heartbeatInterval,
         gracePeriod,
+        reshardInterval,
       })
     )
     const clusterB = range(numShards).map(() =>
@@ -121,6 +127,7 @@ describe('ShardRegistrar', function() {
         cluster: 'b',
         heartbeatInterval,
         gracePeriod,
+        reshardInterval,
       })
     )
     const aEvents = Promise.all(

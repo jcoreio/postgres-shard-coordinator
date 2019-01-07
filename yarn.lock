@@ -4915,15 +4915,6 @@ log-update@^2.3.0:
     cli-cursor "^2.0.0"
     wrap-ansi "^3.0.1"
 
-log4jcore@^2.0.3:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/log4jcore/-/log4jcore-2.0.3.tgz#5b9b1fc4263d231591be438234d0dd3f3900a270"
-  integrity sha512-cj8wQ+wECBi9IXGnZZXEmIVlegpPM/Y5lm1uhyJmy489cbTl4iBOBrX+yumYhzEiIaFrXomIEAk7D/kaGzJYqQ==
-  dependencies:
-    babel-runtime "^6.23.0"
-    lodash "^4.17.4"
-    moment "^2.22.2"
-
 loglevel-colored-level-prefix@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/loglevel-colored-level-prefix/-/loglevel-colored-level-prefix-1.0.0.tgz#6a40218fdc7ae15fc76c3d0f3e676c465388603e"
@@ -5312,11 +5303,6 @@ modify-values@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/modify-values/-/modify-values-1.0.1.tgz#b3939fa605546474e3e3e3c63d64bd43b4ee6022"
   integrity sha512-xV2bxeN6F7oYjZWTe/YPAy6MN2M+sL4u/Rlm2AHCIVGfo2p1yGmBHQ6vHehl4bRTZBdHu3TSkWdYgkwpYzAGSw==
-
-moment@^2.22.2:
-  version "2.23.0"
-  resolved "https://registry.yarnpkg.com/moment/-/moment-2.23.0.tgz#759ea491ac97d54bac5ad776996e2a58cc1bc225"
-  integrity sha512-3IE39bHVqFbWWaPOMHZF98Q9c3LDKGTmypMiTM2QygGXXElkFWIH7GxfmlwmY2vwa+wmNsoYZmG2iusf1ZjJoA==
 
 move-concurrently@^1.0.1:
   version "1.0.1"
