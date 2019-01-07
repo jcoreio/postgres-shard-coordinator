@@ -111,7 +111,9 @@ export class ShardRegistrar extends EventEmitter<Events> {
     let startTime = Date.now()
     let delay
     this._register().catch((err: Error) => {
-      console.error(err.stack) // eslint-disable-line no-console
+      if (this._running) {
+        console.error(err.stack) // eslint-disable-line no-console
+      }
       delay = 100
     })
     delay = Math.max(
@@ -134,6 +136,7 @@ export class ShardRegistrar extends EventEmitter<Events> {
   async _register(): Promise<void> {
     const { _holder: holder } = this
     const { cluster, heartbeatInterval, gracePeriod } = this._options
+    const interval = `${heartbeatInterval + gracePeriod} seconds`
 
     try {
       if (!this._upsertedCluster) {
@@ -142,7 +145,6 @@ export class ShardRegistrar extends EventEmitter<Events> {
       }
 
       await this._query('BEGIN;')
-      const interval = `${heartbeatInterval + gracePeriod} seconds`
       let result
 
       await this._query(lockQuery, [cluster])
