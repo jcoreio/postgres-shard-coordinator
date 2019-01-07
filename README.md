@@ -1,6 +1,6 @@
 # @jcoreio/postgres-shard-coordinator
 
-[![Build Status](https://travis-ci.org/jcoreio/postgres-shard-coordinator.svg?branch=master)](https://travis-ci.org/jcoreio/postgres-shard-coordinator)
+[![CircleCI](https://circleci.com/gh/jcoreio/postgres-shard-coordinator.svg?style=svg&circle-token=b008aa0f99297a9d8fb7ac7d0d1329b1a1e16f95)](https://circleci.com/gh/jcoreio/postgres-shard-coordinator)
 [![Coverage Status](https://codecov.io/gh/jcoreio/postgres-shard-coordinator/branch/master/graph/badge.svg)](https://codecov.io/gh/jcoreio/postgres-shard-coordinator)
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
