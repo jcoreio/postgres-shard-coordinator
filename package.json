@@ -1,7 +1,7 @@
 {
-  "name": "es2015-library-skeleton",
+  "name": "@jcoreio/postgres-shard-coordinator",
   "version": "0.0.0-development",
-  "description": "my personal ES2015 library project skeleton",
+  "description": "helps processes pick a unique shard index and determine the number of shards, via postgres",
   "main": "index.js",
   "module": "es/index.js",
   "modules.root": "es",
@@ -40,7 +40,7 @@
     ]
   },
   "config": {
-    "mocha": "-r @babel/register ./test/**/*.js",
+    "mocha": "-r @babel/register ./test/configure.js ./test/**/*.js",
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
@@ -57,17 +57,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/jedwards1211/es2015-library-skeleton.git"
+    "url": "https://github.com/jcoreio/postgres-shard-coordinator.git"
   },
   "keywords": [
-    "es2015"
+    "postgres",
+    "sharding"
   ],
   "author": "Andy Edwards",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jedwards1211/es2015-library-skeleton/issues"
+    "url": "https://github.com/jcoreio/postgres-shard-coordinator/issues"
   },
-  "homepage": "https://github.com/jedwards1211/es2015-library-skeleton#readme",
+  "homepage": "https://github.com/jcoreio/postgres-shard-coordinator#readme",
   "devDependencies": {
     "@babel/cli": "^7.1.5",
     "@babel/core": "^7.1.6",
@@ -82,15 +83,19 @@
     "@babel/register": "^7.0.0",
     "@commitlint/cli": "^6.0.2",
     "@commitlint/config-conventional": "^6.0.2",
+    "@jcoreio/require-env": "^1.0.11",
     "@jedwards1211/commitlint-config": "^1.0.0",
     "@jedwards1211/eslint-config": "^2.0.0",
     "@jedwards1211/eslint-config-flow": "^1.0.2",
     "babel-eslint": "^10.0.1",
     "babel-plugin-istanbul": "^5.1.0",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "codecov": "^3.1.0",
     "copy": "^0.3.2",
     "cross-env": "^5.2.0",
+    "defaultenv": "^3.1.0",
+    "delay": "^4.1.0",
     "eslint": "^5.9.0",
     "eslint-config-prettier": "^3.3.0",
     "eslint-plugin-flowtype": "^3.2.0",
@@ -103,6 +108,7 @@
     "lint-staged": "^8.0.4",
     "mocha": "^5.2.0",
     "nyc": "^13.1.0",
+    "p-event": "^2.1.0",
     "prettier": "^1.15.2",
     "prettier-eslint": "^8.8.2",
     "rimraf": "^2.6.0",
@@ -110,6 +116,13 @@
     "travis-deploy-once": "^5.0.9"
   },
   "dependencies": {
-    "@babel/runtime": "^7.1.5"
+    "@babel/runtime": "^7.1.5",
+    "@jcoreio/typed-event-emitter": "^1.0.0",
+    "debug": "^4.1.1",
+    "lodash": "^4.17.11",
+    "log4jcore": "^2.0.3",
+    "pg": "^7.7.1",
+    "umzug": "^2.2.0",
+    "uuid": "^3.3.2"
   }
 }
