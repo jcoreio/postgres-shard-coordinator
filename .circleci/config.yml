@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:latest
+      - image: circleci/postgres:9.5-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres_shard_coordinator_test
+    steps:
+      - checkout
+      - run:
+          name: install
+          command: npm install
+      - run:
+          name: release
+          command: npm run semantic-release || true
