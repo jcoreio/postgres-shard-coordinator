@@ -3,7 +3,7 @@
  * @prettier
  */
 import EventEmitter from '@jcoreio/typed-event-emitter'
-import { Client, type Result } from 'pg'
+import { Client, type ResultSet } from 'pg'
 import uuidv4 from 'uuid/v4'
 import debug from 'debug'
 import ShardReservationCluster from './schema/ShardReservationCluster'
@@ -131,7 +131,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  async _query(sql: string, params?: Array<any>): Promise<Result> {
+  async _query(sql: string, params?: Array<any>): Promise<ResultSet> {
     this._debug(sql, params)
     if (!this._running) throw new Error('already stopped')
     const result = await (this._lastQuery = this._client.query(sql, params))
