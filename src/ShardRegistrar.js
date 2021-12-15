@@ -8,6 +8,7 @@ import debug from 'debug'
 import ShardReservationCluster from './schema/ShardReservationCluster'
 import ShardReservation from './schema/ShardReservation'
 const pg = require('pg')
+import type { Client, ResultSet } from 'pg'
 
 const RESHARD_DEBUG = debug.enabled('ShardRegistrar:reshard')
 
@@ -29,26 +30,27 @@ export type ShardRegistrarOptions = $ReadOnly<{
   heartbeatInterval: number,
   gracePeriod: number,
   reshardInterval: number,
+  ...
 }>
 
 export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   _options: ShardRegistrarOptions
   _heartbeatTimeout: ?TimeoutID
   _holder: string = uuidv4()
-  _client: pg.Client
+  _client: Client
   _shard: ?number
   _numShards: ?number
   _running: boolean = false
-  _debug = debug(`ShardRegistrar:${this._holder.substring(0, 8)}`)
+  _debug: any = debug(`ShardRegistrar:${this._holder.substring(0, 8)}`)
   _upsertedCluster: boolean = false
   _lastQuery: ?Promise<any>
 
   constructor(options: ShardRegistrarOptions) {
     super()
     this._options = options
-    this._client = new (this._options.database.native
-      ? pg.native.Client
-      : pg.Client)(options.database)
+    this._client = new (
+      this._options.database.native ? pg.native.Client : pg.Client
+    )({ ...options.database })
   }
 
   shardInfo(): { shard: number, numShards: number } {
@@ -84,12 +86,12 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
     await this._client.end()
     this._client.removeListener('error', this._onError)
-    this._client = new (this._options.database.native
-      ? pg.native.Client
-      : pg.Client)(this._options.database)
+    this._client = new (
+      this._options.database.native ? pg.native.Client : pg.Client
+    )({ ...this._options.database })
   }
 
-  _onError = (err: Error) => this.emit('error', err)
+  _onError: (err: Error) => any = (err: Error) => this.emit('error', err)
 
   _setShard({ shard, numShards }: { shard: number, numShards: number }) {
     if (shard !== this._shard || numShards !== this._numShards) {
@@ -99,25 +101,34 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  _onNotification = ({
+  _onNotification: ({
+    channel: string,
+    payload?: string,
+    ...
+  }) => any = ({
     channel,
     payload,
   }: {
     channel: string,
-    payload: string,
+    payload?: string,
+    ...
   }) => {
     this._debug(channel, payload)
-    const obj = JSON.parse(payload)
+    const obj = payload ? JSON.parse(payload) : null
     try {
       if (!obj) {
         throw new Error(
-          `received invalid payload from Postgres channel "${channel}": ${payload}`
+          `received invalid payload from Postgres channel "${channel}": ${String(
+            payload
+          )}`
         )
       }
       const { shard, numShards } = obj
       if (typeof shard !== 'number' || typeof numShards !== 'number') {
         throw new Error(
-          `received invalid payload from Postgres channel "${channel}": ${payload}`
+          `received invalid payload from Postgres channel "${channel}": ${String(
+            payload
+          )}`
         )
       }
       this._setShard({ shard, numShards })
@@ -126,7 +137,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  _onHeartbeat = async (): Promise<void> => {
+  _onHeartbeat: () => Promise<void> = async (): Promise<void> => {
     let nextTime = Date.now() + this._options.heartbeatInterval * 1000
     const reshardAt: ?Date = await this._register()
     if (reshardAt) nextTime = Math.min(nextTime, reshardAt.getTime())
@@ -136,7 +147,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  async _query(sql: string, params?: Array<any>): Promise<pg.Result> {
+  async _query(sql: string, params?: Array<any>): Promise<ResultSet> {
     this._debug(sql, params)
     if (!this._running) throw new Error('already stopped')
     const result = await (this._lastQuery = this._client.query(sql, params))
@@ -163,17 +174,13 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       if (isCoordinator) {
         ;({
           rows: [{ reshardAt }],
-        } = await this._query(
+        } = (await this._query(
           `SELECT "reshard_ShardReservations"($1, $2::interval) AS "reshardAt";`,
           [cluster, reshardInterval]
-        ))
+        ): any))
         if (RESHARD_DEBUG) {
           const { rows } = await this._query(
-            `SELECT * FROM ${ShardReservation.tableName} WHERE ${
-              ShardReservation.cluster
-            } = $1 ORDER BY ${ShardReservation.shard} NULLS LAST, ${
-              ShardReservation.holder
-            }`,
+            `SELECT * FROM ${ShardReservation.tableName} WHERE ${ShardReservation.cluster} = $1 ORDER BY ${ShardReservation.shard} NULLS LAST, ${ShardReservation.holder}`,
             [cluster]
           )
           console.table(rows) // eslint-disable-line no-console

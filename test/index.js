@@ -8,15 +8,15 @@ import emitted from 'p-event'
 import delay from 'delay'
 import { range } from 'lodash'
 
-describe('ShardRegistrar', function() {
+describe('ShardRegistrar', function () {
   this.timeout(30000)
   let registrars = []
 
-  beforeEach(async function(): Promise<void> {
+  beforeEach(async function (): Promise<void> {
     registrars = []
   })
-  afterEach(async function(): Promise<void> {
-    await Promise.all(registrars.map(registrar => registrar.stop()))
+  afterEach(async function (): Promise<void> {
+    await Promise.all(registrars.map((registrar) => registrar.stop()))
   })
 
   function createRegistrar(options: ShardRegistrarOptions): ShardRegistrar {
@@ -25,7 +25,7 @@ describe('ShardRegistrar', function() {
     return registrar
   }
 
-  it('sequential three node test', async function(): Promise<void> {
+  it('sequential three node test', async function (): Promise<void> {
     const cluster = 'a'
     const heartbeatInterval = 1
     const gracePeriod = 3
@@ -107,7 +107,7 @@ describe('ShardRegistrar', function() {
       registrar3.start(),
     ])
   })
-  it(`two clusters of registrars operating simultaneously`, async function(): Promise<void> {
+  it(`two clusters of registrars operating simultaneously`, async function (): Promise<void> {
     const heartbeatInterval = 1
     const gracePeriod = 3
     const reshardInterval = 5
@@ -131,27 +131,27 @@ describe('ShardRegistrar', function() {
       })
     )
     const aEvents = Promise.all(
-      clusterA.map(registrar =>
-        emitted(registrar, 'shardChanged', e => e.numShards === numShards)
+      clusterA.map((registrar) =>
+        emitted(registrar, 'shardChanged', (e) => e.numShards === numShards)
       )
     )
     const bEvents = Promise.all(
-      clusterB.map(registrar =>
-        emitted(registrar, 'shardChanged', e => e.numShards === numShards)
+      clusterB.map((registrar) =>
+        emitted(registrar, 'shardChanged', (e) => e.numShards === numShards)
       )
     )
 
     await Promise.all([
       aEvents,
       bEvents,
-      ...clusterA.map(registrar => registrar.start()),
-      ...clusterB.map(registrar => registrar.start()),
+      ...clusterA.map((registrar) => registrar.start()),
+      ...clusterB.map((registrar) => registrar.start()),
     ])
 
-    expect((await aEvents).map(e => e.shard).sort()).to.deep.equal(
+    expect((await aEvents).map((e) => e.shard).sort()).to.deep.equal(
       range(numShards)
     )
-    expect((await bEvents).map(e => e.shard).sort()).to.deep.equal(
+    expect((await bEvents).map((e) => e.shard).sort()).to.deep.equal(
       range(numShards)
     )
   })

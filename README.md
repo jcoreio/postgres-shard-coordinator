@@ -97,7 +97,7 @@ const registrar = new ShardRegistrar({
 registrar.on('shardChanged', ({ shard, numShards }) => {
   // reconfigure the notification queue processor
 })
-registrar.on('error', err => console.error(err.stack))
+registrar.on('error', (err) => console.error(err.stack))
 
 migrate({ database }).then(() => registrar.start())
 ```

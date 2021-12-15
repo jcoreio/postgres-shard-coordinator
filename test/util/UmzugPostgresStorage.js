@@ -50,6 +50,6 @@ export default class UmzugPostgresStorage {
       FROM ${this.config.relation}
       ORDER BY "${this.config.column}" ASC;
     `)
-    return rows.map(row => row[this.config.column])
+    return rows.map((row) => row[this.config.column])
   }
 }

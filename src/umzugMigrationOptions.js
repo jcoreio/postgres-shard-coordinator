@@ -25,7 +25,7 @@ export default function umzugMigrationOptions(): {
     pattern: /^\d+-.+\.sql$/,
     customResolver(file: string): Migration {
       const code = require('fs').readFileSync(file, 'utf8')
-      const [up, down] = code.split(/^-- down.*$/im).map(s => s.trim())
+      const [up, down] = code.split(/^-- down.*$/im).map((s) => s.trim())
       if (!up) {
         throw new Error(`${path.basename(file)}: up SQL not found`)
       }

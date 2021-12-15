@@ -2,16 +2,37 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:16
+
+    steps:
+      - checkout
       - image: circleci/postgres:9.5-alpine
         environment:
           POSTGRES_USER: postgres
           POSTGRES_DB: postgres_shard_coordinator_test
-    steps:
-      - checkout
+
       - run:
-          name: install
-          command: npm install
+          name: Setup NPM Token
+          command: |
+            yarn config set registry "https://registry.npmjs.org/"
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+            echo "registry=https://registry.npmjs.org/" >> .npmrc
+
+      # https://github.com/atlassian/react-beautiful-dnd/issues/1007#issuecomment-446415426
+      - run:
+          name: Workaround for Flow crashing
+          command: echo "server.max_workers=1" >> .flowconfig
+
+      - run:
+          name: Install Dependencies
+          command: yarn install --frozen-lockfile
+
+      - run:
+          name: build
+          command: yarn run prepublishOnly
+      - run:
+          name: upload test coverage
+          command: yarn codecov
       - run:
           name: release
-          command: npm run semantic-release || true
+          command: yarn run semantic-release
