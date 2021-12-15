@@ -3,6 +3,7 @@
  * @prettier
  */
 import EventEmitter from '@jcoreio/typed-event-emitter'
+import { Client, type ResultSet } from 'pg'
 import uuidv4 from 'uuid/v4'
 import debug from 'debug'
 import ShardReservationCluster from './schema/ShardReservationCluster'
@@ -173,6 +174,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       let reshardAt: ?Date
       if (isCoordinator) {
         ;({
+          // $FlowFixMe: rows exists once promise is resovled
           rows: [{ reshardAt }],
         } = (await this._query(
           `SELECT "reshard_ShardReservations"($1, $2::interval) AS "reshardAt";`,
