@@ -3,38 +3,39 @@
  * @prettier
  */
 import EventEmitter from '@jcoreio/typed-event-emitter'
-import { Client, type Result } from 'pg'
 import uuidv4 from 'uuid/v4'
 import debug from 'debug'
 import ShardReservationCluster from './schema/ShardReservationCluster'
 import ShardReservation from './schema/ShardReservation'
+const pg = require('pg')
 
 const RESHARD_DEBUG = debug.enabled('ShardRegistrar:reshard')
 
-export type ShardRegistrarEvents = {
-  shardChanged: [{ shard: number, numShards: number }],
+export type ShardRegistrarEvents = {|
+  shardChanged: [{| shard: number, numShards: number |}],
   error: [Error],
-}
+|}
 
-export type ShardRegistrarOptions = {
+export type ShardRegistrarOptions = $ReadOnly<{
   cluster: string,
-  database: {
+  database: $ReadOnly<{
     database: string,
     user: string,
     password: string,
     host: string,
     port: number,
-  },
+    native?: boolean,
+  }>,
   heartbeatInterval: number,
   gracePeriod: number,
   reshardInterval: number,
-}
+}>
 
 export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   _options: ShardRegistrarOptions
   _heartbeatTimeout: ?TimeoutID
   _holder: string = uuidv4()
-  _client: Client
+  _client: pg.Client
   _shard: ?number
   _numShards: ?number
   _running: boolean = false
@@ -45,7 +46,9 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   constructor(options: ShardRegistrarOptions) {
     super()
     this._options = options
-    this._client = new Client(options.database)
+    this._client = new (this._options.database.native
+      ? pg.native.Client
+      : pg.Client)(options.database)
   }
 
   shardInfo(): { shard: number, numShards: number } {
@@ -81,7 +84,9 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
     await this._client.end()
     this._client.removeListener('error', this._onError)
-    this._client = new Client(this._options.database)
+    this._client = new (this._options.database.native
+      ? pg.native.Client
+      : pg.Client)(this._options.database)
   }
 
   _onError = (err: Error) => this.emit('error', err)
@@ -131,7 +136,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  async _query(sql: string, params?: Array<any>): Promise<Result> {
+  async _query(sql: string, params?: Array<any>): Promise<pg.Result> {
     this._debug(sql, params)
     if (!this._running) throw new Error('already stopped')
     const result = await (this._lastQuery = this._client.query(sql, params))

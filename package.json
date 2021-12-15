@@ -121,7 +121,7 @@
     "@babel/runtime": "^7.1.5",
     "@jcoreio/typed-event-emitter": "^1.0.0",
     "debug": "^4.1.1",
-    "pg": "^7.7.1",
+    "pg": "^8.7.1",
     "uuid": "^3.3.2"
   }
 }

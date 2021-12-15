@@ -83,6 +83,7 @@ const database = {
   database: requireEnv('DB_NAME'),
   password: requireEnv('DB_PASSWORD'),
   port: parseInt(requireEnv('DB_PORT')),
+  native: true, // optional, use pg-native
 }
 
 const registrar = new ShardRegistrar({
