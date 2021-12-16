@@ -14,7 +14,7 @@
     "clean": "rimraf es lib $(cd src; ls) *.js.flow *.d.ts",
     "build": "npm run clean && babel src --out-dir es && flow-copy-source -v src/ es && copy src/**/*.d.ts es && cross-env BABEL_ENV=es5 babel src --out-dir . && flow-copy-source -v src/ . && copy src/**/*.d.ts .",
     "test": "cross-env NODE_ENV=test BABEL_ENV=coverage defaultenv env/local.js nyc --reporter=lcov --reporter=text mocha $npm_package_config_mocha",
-    "pretest": "if [[ -z $CI ]]; then defaultenv env/local.js docker-compose up -d; else exit 0; fi",
+    "pretest": "if [ -z $CI ]; then defaultenv env/local.js docker-compose up -d; else exit 0; fi",
     "codecov": "nyc report --reporter=text-lcov > coverage.lcov; codecov",
     "prepublishOnly": "npm run clean && npm run prettier:check && npm run lint && flow && npm test && npm run build",
     "open:coverage": "open coverage/lcov-report/index.html",
