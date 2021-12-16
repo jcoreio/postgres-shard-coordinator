@@ -1,12 +1,81 @@
 // @flow
-import { ShardRegistrar, type ShardRegistrarOptions } from '../src'
-
+import {
+  ShardRegistrar,
+  type ShardRegistrarOptions,
+  umzugMigrationOptions,
+} from '../src'
 import { database } from './database'
-import { describe, it, afterEach, beforeEach } from 'mocha'
+import { describe, it, afterEach, before, beforeEach } from 'mocha'
 import { expect } from 'chai'
 import emitted from 'p-event'
 import delay from 'delay'
 import { range } from 'lodash'
+import { Client } from 'pg'
+import Umzug from 'umzug'
+import UmzugPostgresStorage from './util/UmzugPostgresStorage'
+import poll from '@jcoreio/poll'
+
+async function prepareTestDatabase(): Promise<void> {
+  let client
+  await poll(async (): Promise<void> => {
+    client = new Client({ ...database, database: 'postgres' })
+    await client.connect()
+    await client.end()
+  }, 1000).timeout(15000)
+  // try {
+  //   const {
+  //     rows: [{ database_exists }],
+  //   } = await client.query({
+  //     text: `SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1) AS database_exists`,
+  //     values: [database.database],
+  //   })
+  //   if (!database_exists) {
+  //     await client.query(`CREATE DATABASE ${database.database};`)
+  //   }
+  // } finally {
+  //   await client.end()
+  // }
+
+  client = new Client({ ...database })
+  await client.connect()
+  try {
+    await client.query(`DROP SCHEMA IF EXISTS public CASCADE;`)
+    await client.query(`CREATE SCHEMA public;`)
+  } finally {
+    await client.end()
+  }
+}
+
+before(async function (): Promise<void> {
+  this.timeout(30000)
+
+  await prepareTestDatabase()
+})
+
+beforeEach(async function (): Promise<void> {
+  this.timeout(30000)
+  const client = new Client({ ...database })
+  await client.connect()
+
+  const umzug = new Umzug({
+    storage: new UmzugPostgresStorage({ database }),
+    storageOptions: {
+      database: database.database,
+      relation: '"SequelizeMeta"',
+      column: 'name',
+    },
+    migrations: {
+      ...umzugMigrationOptions(),
+      params: [{ query: (sql: string) => client.query(sql) }],
+    },
+  })
+
+  try {
+    await umzug.up()
+  } finally {
+    await client.end()
+  }
+})
 
 describe('ShardRegistrar', function () {
   this.timeout(30000)
