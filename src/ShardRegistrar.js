@@ -7,8 +7,6 @@ import uuidv4 from 'uuid/v4'
 import debug from 'debug'
 import ShardReservationCluster from './schema/ShardReservationCluster'
 import ShardReservation from './schema/ShardReservation'
-const pg = require('pg')
-import type { Client, ResultSet } from 'pg'
 
 const RESHARD_DEBUG = debug.enabled('ShardRegistrar:reshard')
 
@@ -17,16 +15,27 @@ export type ShardRegistrarEvents = {|
   error: [Error],
 |}
 
+type PgResult = $ReadOnly<{
+  rows: { [string]: any }[],
+  ...
+}>
+
+type PgListener = (channel: string, payload: any) => any
+
+interface PgIpc {
+  notify(channel: string, payload?: any): Promise<void>;
+  listen(channel: string, listener: PgListener): Promise<void>;
+  unlisten(channel: string, listener: PgListener): Promise<void>;
+}
+
+interface PgPool {
+  query(sql: string, params?: any[]): Promise<PgResult>;
+}
+
 export type ShardRegistrarOptions = $ReadOnly<{
   cluster: string,
-  database: $ReadOnly<{
-    database: string,
-    user: string,
-    password: string,
-    host: string,
-    port: number,
-    native?: boolean,
-  }>,
+  pool: PgPool,
+  ipc: PgIpc,
   heartbeatInterval: number,
   gracePeriod: number,
   reshardInterval: number,
@@ -37,20 +46,20 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   _options: ShardRegistrarOptions
   _heartbeatTimeout: ?TimeoutID
   _holder: string = uuidv4()
-  _client: Client
+  _pool: PgPool
+  _ipc: PgIpc
   _shard: ?number
   _numShards: ?number
   _running: boolean = false
   _debug: any = debug(`ShardRegistrar:${this._holder.substring(0, 8)}`)
   _upsertedCluster: boolean = false
-  _lastQuery: ?Promise<any>
+  _lastQuery: ?Promise<PgResult>
 
   constructor(options: ShardRegistrarOptions) {
     super()
     this._options = options
-    this._client = new (
-      this._options.database.native ? pg.native.Client : pg.Client
-    )({ ...options.database })
+    this._pool = options.pool
+    this._ipc = options.ipc
   }
 
   shardInfo(): { shard: number, numShards: number } {
@@ -66,11 +75,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     if (this._running) return
     this._running = true
     this._upsertedCluster = false
-    const { _holder: holder } = this
-    await this._client.connect()
-    this._client.on('notification', this._onNotification)
-    this._client.on('error', this._onError)
-    await this._query(`LISTEN "shardInfo/${holder}"`)
+    this._ipc.listen(`shardInfo/${this._holder}`, this._onNotification)
     this._onHeartbeat()
   }
 
@@ -78,17 +83,12 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     if (!this._running) return
     this._running = false
     if (this._heartbeatTimeout != null) clearTimeout(this._heartbeatTimeout)
-    this._client.removeListener('notification', this._onNotification)
+    this._ipc.unlisten(`shardInfo/${this._holder}`, this._onNotification)
     try {
       await this._lastQuery
     } catch (error) {
       // ignore
     }
-    await this._client.end()
-    this._client.removeListener('error', this._onError)
-    this._client = new (
-      this._options.database.native ? pg.native.Client : pg.Client
-    )({ ...this._options.database })
   }
 
   _onError: (err: Error) => any = (err: Error) => this.emit('error', err)
@@ -101,29 +101,20 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  _onNotification: ({
+  _onNotification: (channel: string, payload: any) => any = (
     channel: string,
-    payload?: string,
-    ...
-  }) => any = ({
-    channel,
-    payload,
-  }: {
-    channel: string,
-    payload?: string,
-    ...
-  }) => {
+    payload: any
+  ) => {
     this._debug(channel, payload)
-    const obj = payload ? JSON.parse(payload) : null
     try {
-      if (!obj) {
+      if (!payload) {
         throw new Error(
           `received invalid payload from Postgres channel "${channel}": ${String(
             payload
           )}`
         )
       }
-      const { shard, numShards } = obj
+      const { shard, numShards } = payload
       if (typeof shard !== 'number' || typeof numShards !== 'number') {
         throw new Error(
           `received invalid payload from Postgres channel "${channel}": ${String(
@@ -147,10 +138,10 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  async _query(sql: string, params?: Array<any>): Promise<ResultSet> {
+  async _query(sql: string, params?: Array<any>): Promise<PgResult> {
     this._debug(sql, params)
     if (!this._running) throw new Error('already stopped')
-    const result = await (this._lastQuery = this._client.query(sql, params))
+    const result = await (this._lastQuery = this._pool.query(sql, params))
     this._debug(result.rows)
     return result
   }

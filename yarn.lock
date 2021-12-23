@@ -1181,6 +1181,16 @@
     bindings "^1.5.0"
     node-addon-api "^2.0.0"
 
+"@jcoreio/pg-ipc@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.npmjs.org/@jcoreio/pg-ipc/-/pg-ipc-1.0.0.tgz#185a3c59286602e2ef1bb922c4faafd1d3c18737"
+  integrity sha512-K6ZiOM/NgWJjGAOBs67xWnviCvdF1PzfyhvZGg+aQWvG77ijJvUBnDbhc5U2nhoibTLnYs58PmOjWNpyh7PQng==
+  dependencies:
+    "@babel/runtime" "^7.15.4"
+    "@jcoreio/typed-event-emitter" "^1.1.0"
+    strict-event-emitter-types "^2.0.0"
+    verror "^1.10.1"
+
 "@jcoreio/poll@^2.3.1":
   version "2.3.1"
   resolved "https://registry.npmjs.org/@jcoreio/poll/-/poll-2.3.1.tgz#66e46b84264adb90a645af002186100b2d158233"
@@ -1197,6 +1207,13 @@
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/@jcoreio/typed-event-emitter/-/typed-event-emitter-1.0.0.tgz#6ebd3e0c1a6423a77ad9964e779cf156ae65c992"
   integrity sha512-IGLRp2RfxSsO0iPEGu/QtxWH/NxCaUxIiWvq0HGwxINvk9L1oAB+h9RNjZPwLBeqsivwiY9jvAZKQIbKNxIbXw==
+
+"@jcoreio/typed-event-emitter@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.npmjs.org/@jcoreio/typed-event-emitter/-/typed-event-emitter-1.1.0.tgz#851126282f43f1db02242827b969912fd29e4b99"
+  integrity sha512-/jipgciwKe/MpQ1CB1Sx2tuEPDfWH5cJksNrC0XM6cZuVD9b4DgvkCExPD71+R7jAd8I1dK3xoHoGdcJfFscOQ==
+  dependencies:
+    p-timeout "^3.2.0"
 
 "@jedwards1211/commitlint-config@^1.0.2":
   version "1.0.2"
@@ -5479,6 +5496,13 @@ p-timeout@^2.0.1:
   dependencies:
     p-finally "^1.0.0"
 
+p-timeout@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.npmjs.org/p-timeout/-/p-timeout-3.2.0.tgz#c7e17abc971d2a7962ef83626b35d635acf23dfe"
+  integrity sha512-rhIwUycgwwKcP9yTOOFK/AKsAopjjCakVqLHePO3CC6Mir1Z99xT+R63jZxAT5lFZLa2inS5h+ZS2GvR99/FBg==
+  dependencies:
+    p-finally "^1.0.0"
+
 p-try@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/p-try/-/p-try-1.0.0.tgz#cbc79cdbaf8fd4228e13f621f2b1a237c1b207b3"
@@ -6502,6 +6526,11 @@ stream-events@^1.0.5:
   dependencies:
     stubs "^3.0.0"
 
+strict-event-emitter-types@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.npmjs.org/strict-event-emitter-types/-/strict-event-emitter-types-2.0.0.tgz#05e15549cb4da1694478a53543e4e2f4abcf277f"
+  integrity sha512-Nk/brWYpD85WlOgzw5h173aci0Teyv8YdIAEtV+N88nDB0dLlazZyJMIsN6eo1/AR61l+p6CJTG1JIyFaoNEEA==
+
 string-argv@0.3.1:
   version "0.3.1"
   resolved "https://registry.npmjs.org/string-argv/-/string-argv-0.3.1.tgz#95e2fbec0427ae19184935f816d74aaa4c5c19da"
@@ -7067,6 +7096,15 @@ verror@1.10.0:
   version "1.10.0"
   resolved "https://registry.npmjs.org/verror/-/verror-1.10.0.tgz#3a105ca17053af55d6e270c1f8288682e18da400"
   integrity sha1-OhBcoXBTr1XW4nDB+CiGguGNpAA=
+  dependencies:
+    assert-plus "^1.0.0"
+    core-util-is "1.0.2"
+    extsprintf "^1.2.0"
+
+verror@^1.10.1:
+  version "1.10.1"
+  resolved "https://registry.npmjs.org/verror/-/verror-1.10.1.tgz#4bf09eeccf4563b109ed4b3d458380c972b0cdeb"
+  integrity sha512-veufcmxri4e3XSrT0xwfUR7kguIkaxBeosDg00yDWhk49wdwkSUrvvsm7nc75e1PUyvIeZj6nS8VQRYz2/S4Xg==
   dependencies:
     assert-plus "^1.0.0"
     core-util-is "1.0.2"

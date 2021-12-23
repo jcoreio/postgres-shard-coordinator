@@ -5,38 +5,25 @@ import {
   umzugMigrationOptions,
 } from '../src'
 import { database } from './database'
-import { describe, it, afterEach, before, beforeEach } from 'mocha'
+import { describe, it, after, afterEach, before, beforeEach } from 'mocha'
 import { expect } from 'chai'
 import emitted from 'p-event'
 import delay from 'delay'
 import { range } from 'lodash'
-import { Client } from 'pg'
+import { Client, Pool } from 'pg'
+import PgIpc from '@jcoreio/pg-ipc'
 import Umzug from 'umzug'
 import UmzugPostgresStorage from './util/UmzugPostgresStorage'
 import poll from '@jcoreio/poll'
 
 async function prepareTestDatabase(): Promise<void> {
-  let client
   await poll(async (): Promise<void> => {
-    client = new Client({ ...database, database: 'postgres' })
+    const client = new Client({ ...database, database: 'postgres' })
     await client.connect()
     await client.end()
   }, 1000).timeout(15000)
-  // try {
-  //   const {
-  //     rows: [{ database_exists }],
-  //   } = await client.query({
-  //     text: `SELECT EXISTS (SELECT FROM pg_database WHERE datname = $1) AS database_exists`,
-  //     values: [database.database],
-  //   })
-  //   if (!database_exists) {
-  //     await client.query(`CREATE DATABASE ${database.database};`)
-  //   }
-  // } finally {
-  //   await client.end()
-  // }
 
-  client = new Client({ ...database })
+  const client = new Client({ ...database })
   await client.connect()
   try {
     await client.query(`DROP SCHEMA IF EXISTS public CASCADE;`)
@@ -46,6 +33,16 @@ async function prepareTestDatabase(): Promise<void> {
   }
 }
 
+const pool = new Pool({ ...database })
+// eslint-disable-next-line no-console
+pool.on('error', (error) => console.error(error.stack))
+
+const ipc = new PgIpc({
+  newClient: () => new Client({ ...database }),
+})
+// eslint-disable-next-line no-console
+ipc.on('error', (error) => console.error(error.stack))
+
 before(async function (): Promise<void> {
   this.timeout(30000)
 
@@ -54,8 +51,6 @@ before(async function (): Promise<void> {
 
 beforeEach(async function (): Promise<void> {
   this.timeout(30000)
-  const client = new Client({ ...database })
-  await client.connect()
 
   const umzug = new Umzug({
     storage: new UmzugPostgresStorage({ database }),
@@ -66,16 +61,14 @@ beforeEach(async function (): Promise<void> {
     },
     migrations: {
       ...umzugMigrationOptions(),
-      params: [{ query: (sql: string) => client.query(sql) }],
+      params: [{ query: (...args) => pool.query(...args) }],
     },
   })
 
-  try {
-    await umzug.up()
-  } finally {
-    await client.end()
-  }
+  await umzug.up()
 })
+
+after(() => Promise.all([pool.end(), ipc.end()]))
 
 describe('ShardRegistrar', function () {
   this.timeout(30000)
@@ -100,7 +93,8 @@ describe('ShardRegistrar', function () {
     const gracePeriod = 3
     const reshardInterval = 5
     const options = {
-      database,
+      pool,
+      ipc,
       cluster,
       heartbeatInterval,
       gracePeriod,
@@ -183,7 +177,8 @@ describe('ShardRegistrar', function () {
     const numShards = 10
     const clusterA = range(numShards).map(() =>
       createRegistrar({
-        database,
+        pool,
+        ipc,
         cluster: 'a',
         heartbeatInterval,
         gracePeriod,
@@ -192,7 +187,8 @@ describe('ShardRegistrar', function () {
     )
     const clusterB = range(numShards).map(() =>
       createRegistrar({
-        database,
+        pool,
+        ipc,
         cluster: 'b',
         heartbeatInterval,
         gracePeriod,

@@ -1,9 +1,14 @@
 // @flow
 
 import requireEnv from '@jcoreio/require-env'
-import { type ShardRegistrarOptions } from '../src'
 
-export const database: $PropertyType<ShardRegistrarOptions, 'database'> = {
+export const database: {|
+  user: string,
+  host: string,
+  database: string,
+  password: string,
+  port: number,
+|} = {
   user: 'postgres',
   host: 'localhost',
   database: 'postgres',

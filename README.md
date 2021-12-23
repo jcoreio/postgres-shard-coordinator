@@ -74,6 +74,8 @@ async function query(sql) {
 
 ```js
 import { ShardRegistrar } from '@jcoreio/postgres-shard-coordinator'
+import { Pool } from 'pg'
+import PgIpc from '@jcoreio/pg-ipc'
 import requireEnv from '@jcoreio/require-env'
 import migrate from './migrate'
 
@@ -83,11 +85,18 @@ const database = {
   database: requireEnv('DB_NAME'),
   password: requireEnv('DB_PASSWORD'),
   port: parseInt(requireEnv('DB_PORT')),
-  native: true, // optional, use pg-native
 }
 
+const ipc = new PgIpc({
+  newClient: () => new Client(database),
+})
+ipc.on('error', (err) => console.error(err.stack))
+
+const pool = new Pool(database)
+
 const registrar = new ShardRegistrar({
-  database,
+  pool,
+  ipc,
   cluster: 'clarity_notifications',
   heartbeatInterval: 60, // seconds
   gracePeriod: 30, // seconds
@@ -99,5 +108,10 @@ registrar.on('shardChanged', ({ shard, numShards }) => {
 })
 registrar.on('error', (err) => console.error(err.stack))
 
-migrate({ database }).then(() => registrar.start())
+async function go() {
+  await migrate({ database })
+  await registrar.start()
+}
+
+go()
 ```
