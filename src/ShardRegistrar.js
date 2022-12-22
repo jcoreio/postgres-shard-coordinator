@@ -62,6 +62,14 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     this._ipc = options.ipc
   }
 
+  _emit<Event: $Keys<ShardRegistrarEvents>>(
+    event: Event,
+    ...args: $ElementType<ShardRegistrarEvents, Event>
+  ): boolean {
+    this._debug('emitting', event, ...args)
+    return (this: any).emit(event, ...args)
+  }
+
   shardInfo(): { shard: number, numShards: number } {
     const shard = this._shard
     const numShards = this._numShards
@@ -75,7 +83,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     if (this._running) return
     this._running = true
     this._upsertedCluster = false
-    this._ipc.listen(`shardInfo/${this._holder}`, this._onNotification)
+    await this._ipc.listen(`shardInfo/${this._holder}`, this._onNotification)
     this._onHeartbeat()
   }
 
@@ -83,21 +91,33 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     if (!this._running) return
     this._running = false
     if (this._heartbeatTimeout != null) clearTimeout(this._heartbeatTimeout)
-    this._ipc.unlisten(`shardInfo/${this._holder}`, this._onNotification)
     try {
+      await this._ipc.unlisten(
+        `shardInfo/${this._holder}`,
+        this._onNotification
+      )
       await this._lastQuery
     } catch (error) {
       // ignore
     }
   }
 
-  _onError: (err: Error) => any = (err: Error) => this.emit('error', err)
+  _onError: (err: Error) => any = (err: Error) => this._emit('error', err)
 
   _setShard({ shard, numShards }: { shard: number, numShards: number }) {
+    if (!Number.isFinite(shard) || shard < 0 || shard % 1) {
+      throw new Error(`invalid shard: ${shard}`)
+    }
+    if (!Number.isFinite(numShards) || numShards <= 0 || numShards % 1) {
+      throw new Error(`invalid numShards: ${numShards}`)
+    }
+    if (shard >= numShards) {
+      throw new Error(`shard is >= numShards: ${shard} >= ${numShards}`)
+    }
     if (shard !== this._shard || numShards !== this._numShards) {
       this._shard = shard
       this._numShards = numShards
-      this.emit('shardChanged', { shard, numShards })
+      this._emit('shardChanged', { shard, numShards })
     }
   }
 
@@ -124,7 +144,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       }
       this._setShard({ shard, numShards })
     } catch (error) {
-      this.emit('error', error)
+      this._emit('error', error)
     }
   }
 
@@ -177,10 +197,20 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
           console.table(rows) // eslint-disable-line no-console
         }
       }
+      const {
+        rows: [reservation],
+      } = await this._query(selectShardQuery, [cluster, holder])
+      if (
+        reservation?.shard != null &&
+        reservation?.numShards != null &&
+        reservation?.numShards > 0
+      ) {
+        this._setShard(reservation)
+      }
 
       return reshardAt
     } catch (error) {
-      if (this._running) this.emit('error', error)
+      if (this._running) this._emit('error', error)
     }
   }
 }
@@ -230,3 +260,17 @@ SELECT $1 = (
 `
   .trim()
   .replace(/\s+/g, ' ')
+
+const selectShardQuery = `
+SELECT
+  ${ShardReservation.shard} AS shard,
+  (
+    SELECT COUNT(*)::int
+    FROM ${ShardReservation.tableName}
+    WHERE ${ShardReservation.cluster} = $1
+      AND (${ShardReservation.shard} IS NOT NULL AND ${ShardReservation.expiresAt} > CURRENT_TIMESTAMP)
+  ) AS "numShards"
+FROM ${ShardReservation.tableName}
+WHERE ${ShardReservation.cluster} = $1
+  AND ${ShardReservation.holder} = $2;
+`
