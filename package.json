@@ -4,7 +4,6 @@
   "description": "helps processes pick a unique shard index and determine the number of shards, via postgres",
   "sideEffects": false,
   "scripts": {
-    "pretest": "if [ -z $CI ]; then defaultenv env/local.js docker-compose up -d; else exit 0; fi",
     "tc": "toolchain",
     "toolchain": "toolchain",
     "test": "toolchain test",
