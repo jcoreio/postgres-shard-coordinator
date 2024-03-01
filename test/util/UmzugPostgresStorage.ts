@@ -1,13 +1,25 @@
 import { Client } from 'pg'
 
-export default class UmzugPostgresStorage {
-  constructor(config) {
-    if (config.storageOptions) {
-      config = config.storageOptions
-    }
+type Config = {
+  database: {
+    user: string
+    host: string
+    database: string
+    password: string
+    port: number
+  }
+  column: string
+  relation: string
+}
 
-    //establish the dbconnection and store in a promise.
-    this.config = config
+export default class UmzugPostgresStorage {
+  config: Config
+  constructor(config: Config | { storageOptions: Config }) {
+    if ('storageOptions' in config) {
+      this.config = config.storageOptions
+    } else {
+      this.config = config
+    }
   }
 
   async query(sql) {

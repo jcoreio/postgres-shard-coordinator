@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/preset-flow' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,20 +23,20 @@ declare module '@babel/preset-flow' {
  * needed.
  */
 declare module '@babel/preset-flow/lib' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@babel/preset-flow/lib/normalize-options' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/preset-flow/lib/index' {
-  declare module.exports: $Exports<'@babel/preset-flow/lib'>;
+  declare module.exports: $Exports<'@babel/preset-flow/lib'>
 }
 declare module '@babel/preset-flow/lib/index.js' {
-  declare module.exports: $Exports<'@babel/preset-flow/lib'>;
+  declare module.exports: $Exports<'@babel/preset-flow/lib'>
 }
 declare module '@babel/preset-flow/lib/normalize-options.js' {
-  declare module.exports: $Exports<'@babel/preset-flow/lib/normalize-options'>;
+  declare module.exports: $Exports<'@babel/preset-flow/lib/normalize-options'>
 }

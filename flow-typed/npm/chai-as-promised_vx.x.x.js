@@ -14,7 +14,7 @@
  */
 
 declare module 'chai-as-promised' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,10 +23,10 @@ declare module 'chai-as-promised' {
  * needed.
  */
 declare module 'chai-as-promised/lib/chai-as-promised' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'chai-as-promised/lib/chai-as-promised.js' {
-  declare module.exports: $Exports<'chai-as-promised/lib/chai-as-promised'>;
+  declare module.exports: $Exports<'chai-as-promised/lib/chai-as-promised'>
 }

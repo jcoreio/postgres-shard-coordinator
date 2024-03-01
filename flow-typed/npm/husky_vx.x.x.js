@@ -14,7 +14,7 @@
  */
 
 declare module 'husky' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,20 +23,20 @@ declare module 'husky' {
  * needed.
  */
 declare module 'husky/lib/bin' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'husky/lib' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'husky/lib/bin.js' {
-  declare module.exports: $Exports<'husky/lib/bin'>;
+  declare module.exports: $Exports<'husky/lib/bin'>
 }
 declare module 'husky/lib/index' {
-  declare module.exports: $Exports<'husky/lib'>;
+  declare module.exports: $Exports<'husky/lib'>
 }
 declare module 'husky/lib/index.js' {
-  declare module.exports: $Exports<'husky/lib'>;
+  declare module.exports: $Exports<'husky/lib'>
 }

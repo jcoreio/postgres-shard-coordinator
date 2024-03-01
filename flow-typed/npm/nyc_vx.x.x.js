@@ -14,7 +14,7 @@
  */
 
 declare module 'nyc' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,121 +23,121 @@ declare module 'nyc' {
  * needed.
  */
 declare module 'nyc/bin/nyc' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/bin/wrap' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/commands/check-coverage' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/commands/helpers' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/commands/instrument' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/commands/merge' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/commands/report' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/config-util' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/fs-promises' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/hash' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/instrumenters/istanbul' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/instrumenters/noop' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/process-args' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/register-env' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/source-maps' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'nyc/lib/wrap' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'nyc/bin/nyc.js' {
-  declare module.exports: $Exports<'nyc/bin/nyc'>;
+  declare module.exports: $Exports<'nyc/bin/nyc'>
 }
 declare module 'nyc/bin/wrap.js' {
-  declare module.exports: $Exports<'nyc/bin/wrap'>;
+  declare module.exports: $Exports<'nyc/bin/wrap'>
 }
 declare module 'nyc/index' {
-  declare module.exports: $Exports<'nyc'>;
+  declare module.exports: $Exports<'nyc'>
 }
 declare module 'nyc/index.js' {
-  declare module.exports: $Exports<'nyc'>;
+  declare module.exports: $Exports<'nyc'>
 }
 declare module 'nyc/lib/commands/check-coverage.js' {
-  declare module.exports: $Exports<'nyc/lib/commands/check-coverage'>;
+  declare module.exports: $Exports<'nyc/lib/commands/check-coverage'>
 }
 declare module 'nyc/lib/commands/helpers.js' {
-  declare module.exports: $Exports<'nyc/lib/commands/helpers'>;
+  declare module.exports: $Exports<'nyc/lib/commands/helpers'>
 }
 declare module 'nyc/lib/commands/instrument.js' {
-  declare module.exports: $Exports<'nyc/lib/commands/instrument'>;
+  declare module.exports: $Exports<'nyc/lib/commands/instrument'>
 }
 declare module 'nyc/lib/commands/merge.js' {
-  declare module.exports: $Exports<'nyc/lib/commands/merge'>;
+  declare module.exports: $Exports<'nyc/lib/commands/merge'>
 }
 declare module 'nyc/lib/commands/report.js' {
-  declare module.exports: $Exports<'nyc/lib/commands/report'>;
+  declare module.exports: $Exports<'nyc/lib/commands/report'>
 }
 declare module 'nyc/lib/config-util.js' {
-  declare module.exports: $Exports<'nyc/lib/config-util'>;
+  declare module.exports: $Exports<'nyc/lib/config-util'>
 }
 declare module 'nyc/lib/fs-promises.js' {
-  declare module.exports: $Exports<'nyc/lib/fs-promises'>;
+  declare module.exports: $Exports<'nyc/lib/fs-promises'>
 }
 declare module 'nyc/lib/hash.js' {
-  declare module.exports: $Exports<'nyc/lib/hash'>;
+  declare module.exports: $Exports<'nyc/lib/hash'>
 }
 declare module 'nyc/lib/instrumenters/istanbul.js' {
-  declare module.exports: $Exports<'nyc/lib/instrumenters/istanbul'>;
+  declare module.exports: $Exports<'nyc/lib/instrumenters/istanbul'>
 }
 declare module 'nyc/lib/instrumenters/noop.js' {
-  declare module.exports: $Exports<'nyc/lib/instrumenters/noop'>;
+  declare module.exports: $Exports<'nyc/lib/instrumenters/noop'>
 }
 declare module 'nyc/lib/process-args.js' {
-  declare module.exports: $Exports<'nyc/lib/process-args'>;
+  declare module.exports: $Exports<'nyc/lib/process-args'>
 }
 declare module 'nyc/lib/register-env.js' {
-  declare module.exports: $Exports<'nyc/lib/register-env'>;
+  declare module.exports: $Exports<'nyc/lib/register-env'>
 }
 declare module 'nyc/lib/source-maps.js' {
-  declare module.exports: $Exports<'nyc/lib/source-maps'>;
+  declare module.exports: $Exports<'nyc/lib/source-maps'>
 }
 declare module 'nyc/lib/wrap.js' {
-  declare module.exports: $Exports<'nyc/lib/wrap'>;
+  declare module.exports: $Exports<'nyc/lib/wrap'>
 }

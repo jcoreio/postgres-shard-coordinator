@@ -1,14 +1,6 @@
-// @flow
-
 import requireEnv from '@jcoreio/require-env'
 
-export const database: {|
-  user: string,
-  host: string,
-  database: string,
-  password: string,
-  port: number,
-|} = {
+export const database = {
   user: 'postgres',
   host: 'localhost',
   database: 'postgres',

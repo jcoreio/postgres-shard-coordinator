@@ -14,7 +14,7 @@
  */
 
 declare module 'babel-plugin-istanbul' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,20 +23,20 @@ declare module 'babel-plugin-istanbul' {
  * needed.
  */
 declare module 'babel-plugin-istanbul/lib' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'babel-plugin-istanbul/lib/load-nyc-config-sync' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'babel-plugin-istanbul/lib/index' {
-  declare module.exports: $Exports<'babel-plugin-istanbul/lib'>;
+  declare module.exports: $Exports<'babel-plugin-istanbul/lib'>
 }
 declare module 'babel-plugin-istanbul/lib/index.js' {
-  declare module.exports: $Exports<'babel-plugin-istanbul/lib'>;
+  declare module.exports: $Exports<'babel-plugin-istanbul/lib'>
 }
 declare module 'babel-plugin-istanbul/lib/load-nyc-config-sync.js' {
-  declare module.exports: $Exports<'babel-plugin-istanbul/lib/load-nyc-config-sync'>;
+  declare module.exports: $Exports<'babel-plugin-istanbul/lib/load-nyc-config-sync'>
 }

@@ -14,7 +14,7 @@
  */
 
 declare module '@babel/plugin-proposal-export-namespace-from' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,13 +23,13 @@ declare module '@babel/plugin-proposal-export-namespace-from' {
  * needed.
  */
 declare module '@babel/plugin-proposal-export-namespace-from/lib' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@babel/plugin-proposal-export-namespace-from/lib/index' {
-  declare module.exports: $Exports<'@babel/plugin-proposal-export-namespace-from/lib'>;
+  declare module.exports: $Exports<'@babel/plugin-proposal-export-namespace-from/lib'>
 }
 declare module '@babel/plugin-proposal-export-namespace-from/lib/index.js' {
-  declare module.exports: $Exports<'@babel/plugin-proposal-export-namespace-from/lib'>;
+  declare module.exports: $Exports<'@babel/plugin-proposal-export-namespace-from/lib'>
 }

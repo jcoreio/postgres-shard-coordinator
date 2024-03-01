@@ -14,7 +14,7 @@
  */
 
 declare module 'cross-env' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,48 +23,48 @@ declare module 'cross-env' {
  * needed.
  */
 declare module 'cross-env/src/bin/cross-env-shell' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'cross-env/src/bin/cross-env' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'cross-env/src/command' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'cross-env/src' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'cross-env/src/is-windows' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'cross-env/src/variable' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'cross-env/src/bin/cross-env-shell.js' {
-  declare module.exports: $Exports<'cross-env/src/bin/cross-env-shell'>;
+  declare module.exports: $Exports<'cross-env/src/bin/cross-env-shell'>
 }
 declare module 'cross-env/src/bin/cross-env.js' {
-  declare module.exports: $Exports<'cross-env/src/bin/cross-env'>;
+  declare module.exports: $Exports<'cross-env/src/bin/cross-env'>
 }
 declare module 'cross-env/src/command.js' {
-  declare module.exports: $Exports<'cross-env/src/command'>;
+  declare module.exports: $Exports<'cross-env/src/command'>
 }
 declare module 'cross-env/src/index' {
-  declare module.exports: $Exports<'cross-env/src'>;
+  declare module.exports: $Exports<'cross-env/src'>
 }
 declare module 'cross-env/src/index.js' {
-  declare module.exports: $Exports<'cross-env/src'>;
+  declare module.exports: $Exports<'cross-env/src'>
 }
 declare module 'cross-env/src/is-windows.js' {
-  declare module.exports: $Exports<'cross-env/src/is-windows'>;
+  declare module.exports: $Exports<'cross-env/src/is-windows'>
 }
 declare module 'cross-env/src/variable.js' {
-  declare module.exports: $Exports<'cross-env/src/variable'>;
+  declare module.exports: $Exports<'cross-env/src/variable'>
 }

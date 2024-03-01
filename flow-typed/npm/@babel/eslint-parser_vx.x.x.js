@@ -14,5 +14,5 @@
  */
 
 declare module '@babel/eslint-parser' {
-  declare module.exports: any;
+  declare module.exports: any
 }

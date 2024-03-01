@@ -14,7 +14,7 @@
  */
 
 declare module 'debug' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,41 +23,41 @@ declare module 'debug' {
  * needed.
  */
 declare module 'debug/dist/debug' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'debug/src/browser' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'debug/src/common' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'debug/src' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'debug/src/node' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'debug/dist/debug.js' {
-  declare module.exports: $Exports<'debug/dist/debug'>;
+  declare module.exports: $Exports<'debug/dist/debug'>
 }
 declare module 'debug/src/browser.js' {
-  declare module.exports: $Exports<'debug/src/browser'>;
+  declare module.exports: $Exports<'debug/src/browser'>
 }
 declare module 'debug/src/common.js' {
-  declare module.exports: $Exports<'debug/src/common'>;
+  declare module.exports: $Exports<'debug/src/common'>
 }
 declare module 'debug/src/index' {
-  declare module.exports: $Exports<'debug/src'>;
+  declare module.exports: $Exports<'debug/src'>
 }
 declare module 'debug/src/index.js' {
-  declare module.exports: $Exports<'debug/src'>;
+  declare module.exports: $Exports<'debug/src'>
 }
 declare module 'debug/src/node.js' {
-  declare module.exports: $Exports<'debug/src/node'>;
+  declare module.exports: $Exports<'debug/src/node'>
 }

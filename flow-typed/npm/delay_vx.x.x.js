@@ -14,7 +14,7 @@
  */
 
 declare module 'delay' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'delay' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'delay/index' {
-  declare module.exports: $Exports<'delay'>;
+  declare module.exports: $Exports<'delay'>
 }
 declare module 'delay/index.js' {
-  declare module.exports: $Exports<'delay'>;
+  declare module.exports: $Exports<'delay'>
 }

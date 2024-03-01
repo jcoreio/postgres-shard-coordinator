@@ -115,7 +115,7 @@ declare module pg {
     Promise: mixed,
     onCreate: Function,
     ...
-  };
+  }
 
   declare type PoolClientEvents = {
     drain: () => void,
@@ -124,7 +124,7 @@ declare module pg {
     notification: (notification: Notification) => void,
     notice: (notice: NoticeMessage) => void,
     ...
-  };
+  }
 
   /*
    * Not extends from Client, cause some of Client's functions(ex: connect and end)
@@ -144,8 +144,8 @@ declare module pg {
     error: Error | null,
     client: PoolClient | null,
     done: DoneCallback
-  ) => void;
-  declare type DoneCallback = (error?: mixed) => void;
+  ) => void
+  declare type DoneCallback = (error?: mixed) => void
 
   declare type PoolEvents = {
     connect: (client: Client) => void,
@@ -153,7 +153,7 @@ declare module pg {
     error: (err: Error, client: Client) => void,
     remove: (client: Client) => void,
     ...
-  };
+  }
 
   // https://github.com/facebook/flow/blob/master/lib/node.js#L581
   // on() returns a events$EventEmitter
@@ -253,16 +253,16 @@ declare module pg {
     // default value: false
     fallback_application_name?: string,
     ...
-  };
+  }
 
-  declare type Row = { [key: string]: mixed, ... };
+  declare type Row = { [key: string]: mixed, ... }
   declare type ResultSet = {
     command: string,
     rowCount: number,
     oid: number,
     rows: Array<Row>,
     ...
-  };
+  }
   declare type ResultBuilder = {
     command: string,
     rowCount: number,
@@ -270,26 +270,26 @@ declare module pg {
     rows: Array<Row>,
     addRow: (row: Row) => void,
     ...
-  };
+  }
   declare type QueryConfig = {
     name?: string,
     text: string,
     values?: any[],
     ...
-  };
+  }
   declare type QuerySubmittableConfig = QueryConfig & {
     submit: (connection: mixed) => void,
     ...
-  };
+  }
 
   declare type QueryCallback = (
     err: Error | null,
     result: ResultSet | void
-  ) => void;
+  ) => void
   declare type ClientConnectCallback = (
     err: Error | null,
     client: Client | void
-  ) => void;
+  ) => void
 
   /*
    * lib/query.js
@@ -322,7 +322,7 @@ declare module pg {
     channel: string,
     payload?: string,
     ...
-  };
+  }
 
   declare type ClientEvents = {
     connect: () => void,
@@ -332,7 +332,7 @@ declare module pg {
     notification: (notification: Notification) => void,
     notice: (notice: NoticeMessage) => void,
     ...
-  };
+  }
 
   /*
    * lib/client.js
@@ -361,8 +361,8 @@ declare module pg {
   /*
    * require('pg-types')
    */
-  declare type TypeParserText = (value: string) => any;
-  declare type TypeParserBinary = (value: Buffer) => any;
+  declare type TypeParserText = (value: string) => any
+  declare type TypeParserBinary = (value: Buffer) => any
   declare type Types = {
     getTypeParser: ((oid: number, format?: 'text') => TypeParserText) &
       ((oid: number, format: 'binary') => TypeParserBinary),
@@ -374,7 +374,7 @@ declare module pg {
       ((oid: number, format: 'binary', parseFn: TypeParserBinary) => void) &
       ((oid: number, parseFn: TypeParserText) => void),
     ...
-  };
+  }
 
   /*
    * lib/index.js ( class PG)
@@ -401,9 +401,9 @@ declare module pg {
   }
 
   // These class are not exposed by pg.
-  declare type PoolType = Pool;
-  declare type PGType = PG;
-  declare type QueryType = Query;
+  declare type PoolType = Pool
+  declare type PGType = PG
+  declare type QueryType = Query
   // module export, keep same structure with index.js
-  declare module.exports: PG;
+  declare module.exports: PG
 }

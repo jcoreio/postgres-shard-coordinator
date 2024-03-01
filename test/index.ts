@@ -1,4 +1,3 @@
-// @flow
 import {
   ShardRegistrar,
   type ShardRegistrarOptions,
@@ -52,27 +51,28 @@ before(async function (): Promise<void> {
 beforeEach(async function (): Promise<void> {
   this.timeout(30000)
 
+  const storageOptions = {
+    database,
+    relation: '"SequelizeMeta"',
+    column: 'name',
+  }
+
   const umzug = new Umzug({
-    storage: new UmzugPostgresStorage({ database }),
-    storageOptions: {
-      database: database.database,
-      relation: '"SequelizeMeta"',
-      column: 'name',
-    },
+    storage: new UmzugPostgresStorage({ storageOptions }) as any,
     migrations: {
       ...umzugMigrationOptions(),
       params: [{ query: (...args) => pool.query(...args) }],
     },
   })
 
-  await umzug.up()
+  await umzug.up({})
 })
 
 after(() => Promise.all([pool.end(), ipc.end()]))
 
 describe('ShardRegistrar', function () {
   this.timeout(30000)
-  let registrars = []
+  let registrars: ShardRegistrar[] = []
 
   beforeEach(async function (): Promise<void> {
     registrars = []

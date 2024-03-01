@@ -14,7 +14,7 @@
  */
 
 declare module 'p-event' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,11 +23,10 @@ declare module 'p-event' {
  * needed.
  */
 
-
 // Filename aliases
 declare module 'p-event/index' {
-  declare module.exports: $Exports<'p-event'>;
+  declare module.exports: $Exports<'p-event'>
 }
 declare module 'p-event/index.js' {
-  declare module.exports: $Exports<'p-event'>;
+  declare module.exports: $Exports<'p-event'>
 }

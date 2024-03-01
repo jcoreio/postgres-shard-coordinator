@@ -14,7 +14,7 @@
  */
 
 declare module 'prettier-eslint' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,20 +23,20 @@ declare module 'prettier-eslint' {
  * needed.
  */
 declare module 'prettier-eslint/dist' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module 'prettier-eslint/dist/utils' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module 'prettier-eslint/dist/index' {
-  declare module.exports: $Exports<'prettier-eslint/dist'>;
+  declare module.exports: $Exports<'prettier-eslint/dist'>
 }
 declare module 'prettier-eslint/dist/index.js' {
-  declare module.exports: $Exports<'prettier-eslint/dist'>;
+  declare module.exports: $Exports<'prettier-eslint/dist'>
 }
 declare module 'prettier-eslint/dist/utils.js' {
-  declare module.exports: $Exports<'prettier-eslint/dist/utils'>;
+  declare module.exports: $Exports<'prettier-eslint/dist/utils'>
 }

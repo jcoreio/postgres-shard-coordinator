@@ -14,7 +14,7 @@
  */
 
 declare module '@commitlint/cli' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 /**
@@ -23,37 +23,37 @@ declare module '@commitlint/cli' {
  * needed.
  */
 declare module '@commitlint/cli/cli' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@commitlint/cli/lib/cli-error' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@commitlint/cli/lib/cli' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 declare module '@commitlint/cli/lib/types' {
-  declare module.exports: any;
+  declare module.exports: any
 }
 
 // Filename aliases
 declare module '@commitlint/cli/cli.js' {
-  declare module.exports: $Exports<'@commitlint/cli/cli'>;
+  declare module.exports: $Exports<'@commitlint/cli/cli'>
 }
 declare module '@commitlint/cli/index' {
-  declare module.exports: $Exports<'@commitlint/cli'>;
+  declare module.exports: $Exports<'@commitlint/cli'>
 }
 declare module '@commitlint/cli/index.js' {
-  declare module.exports: $Exports<'@commitlint/cli'>;
+  declare module.exports: $Exports<'@commitlint/cli'>
 }
 declare module '@commitlint/cli/lib/cli-error.js' {
-  declare module.exports: $Exports<'@commitlint/cli/lib/cli-error'>;
+  declare module.exports: $Exports<'@commitlint/cli/lib/cli-error'>
 }
 declare module '@commitlint/cli/lib/cli.js' {
-  declare module.exports: $Exports<'@commitlint/cli/lib/cli'>;
+  declare module.exports: $Exports<'@commitlint/cli/lib/cli'>
 }
 declare module '@commitlint/cli/lib/types.js' {
-  declare module.exports: $Exports<'@commitlint/cli/lib/types'>;
+  declare module.exports: $Exports<'@commitlint/cli/lib/types'>
 }
