@@ -15,6 +15,10 @@ module.exports = {
       },
       description: 'runs before test',
     },
+    precoverage: {
+      run: () => module.exports.scripts.pretest.run(),
+      description: 'runs before coverage',
+    },
     postbuild:
       'mkdir -p dist/migrations && cp -vp src/migrations/*.sql dist/migrations',
   },
