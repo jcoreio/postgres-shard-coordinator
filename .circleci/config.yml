@@ -5,6 +5,7 @@ jobs:
   build:
     docker:
       - image: cimg/node:20.3.0
+      - image: circleci/postgres:9.5-alpine
 
     steps:
       - checkout
