@@ -85,17 +85,34 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     this._onHeartbeat()
   }
 
-  async stop(): Promise<void> {
+  async stop(options?: { unregister?: boolean }): Promise<void> {
     if (!this._running) return
     this._running = false
     if (this._heartbeatTimeout != null) clearTimeout(this._heartbeatTimeout)
+    const onlyShard = this._shard === 0 && this._numShards === 1
+    console.log({ onlyShard, shard: this._shard, numShards: this._numShards })
+    this._shard = undefined
+    this._numShards = undefined
     try {
       await this._ipc.unlisten(
         `shardInfo/${this._holder}`,
         this._onNotification
       )
       await this._lastQuery
+      if (options?.unregister) {
+        await this._query(
+          unregisterQuery,
+          [this._options.cluster, this._holder],
+          { evenIfStopped: true }
+        )
+        if (onlyShard) {
+          await this._query(resetClusterQuery, [this._options.cluster], {
+            evenIfStopped: true,
+          })
+        }
+      }
     } catch (error) {
+      console.error(error)
       // ignore
     }
   }
@@ -142,7 +159,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       }
       this._setShard({ shard, numShards })
     } catch (error) {
-      this._emit('error', error)
+      this._debug('failed to stop:', error)
     }
   }
 
@@ -156,9 +173,15 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  async _query(sql: string, params?: Array<any>): Promise<PgResult> {
+  async _query(
+    sql: string,
+    params?: Array<any>,
+    options?: { evenIfStopped?: boolean }
+  ): Promise<PgResult> {
+    if (!this._running && !options?.evenIfStopped) {
+      throw new Error('already stopped')
+    }
     this._debug(sql, params)
-    if (!this._running) throw new Error('already stopped')
     const result = await (this._lastQuery = this._pool.query(sql, params))
     this._debug(result.rows)
     return result
@@ -246,6 +269,18 @@ INSERT INTO ${ShardReservation.tableName} (
 `
   .trim()
   .replace(/\s+/g, ' ')
+
+const unregisterQuery = `
+DELETE FROM ${ShardReservation.tableName}
+  WHERE ${ShardReservation.cluster} = $1 AND ${ShardReservation.holder} = $2;
+`
+
+const resetClusterQuery = `
+UPDATE ${ShardReservationCluster.tableName} c
+  SET ${ShardReservationCluster.reshardedAt} = NULL
+  WHERE ${ShardReservationCluster.cluster} = $1
+  AND NOT EXISTS (SELECT FROM ${ShardReservation.tableName} r WHERE r.${ShardReservation.cluster} = c.${ShardReservationCluster.cluster});
+`
 
 const selectIsCoordinatorQuery = `
 SELECT $1 = (

@@ -14,6 +14,8 @@ import PgIpc from '@jcoreio/pg-ipc'
 import Umzug from 'umzug'
 import UmzugPostgresStorage from './util/UmzugPostgresStorage'
 import poll from '@jcoreio/poll'
+import ShardReservation from '../src/schema/ShardReservation'
+import ShardReservationCluster from '../src/schema/ShardReservationCluster'
 
 async function prepareTestDatabase(): Promise<void> {
   await poll(async (): Promise<void> => {
@@ -76,6 +78,8 @@ describe('ShardRegistrar', function () {
 
   beforeEach(async function (): Promise<void> {
     registrars = []
+    await pool.query(`DELETE FROM ${ShardReservation.tableName};`)
+    await pool.query(`DELETE FROM ${ShardReservationCluster.tableName};`)
   })
   afterEach(async function (): Promise<void> {
     await Promise.all(registrars.map((registrar) => registrar.stop()))
@@ -168,6 +172,37 @@ describe('ShardRegistrar', function () {
         numShards: 3,
       }),
       registrar3.start(),
+    ])
+  })
+  it(`single node unregister test`, async function () {
+    const cluster = 'a'
+    const heartbeatInterval = 1
+    const gracePeriod = 3
+    const reshardInterval = 5
+    const options = {
+      pool,
+      ipc,
+      cluster,
+      heartbeatInterval,
+      gracePeriod,
+      reshardInterval,
+    }
+    const registrar1 = createRegistrar(options)
+
+    await Promise.all([
+      expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
+        shard: 0,
+        numShards: 1,
+      }),
+      registrar1.start(),
+    ])
+    await registrar1.stop({ unregister: true })
+    await Promise.all([
+      expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
+        shard: 0,
+        numShards: 1,
+      }),
+      registrar1.start(),
     ])
   })
   it(`two clusters of registrars operating simultaneously`, async function (): Promise<void> {
