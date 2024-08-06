@@ -90,7 +90,6 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     this._running = false
     if (this._heartbeatTimeout != null) clearTimeout(this._heartbeatTimeout)
     const onlyShard = this._shard === 0 && this._numShards === 1
-    console.log({ onlyShard, shard: this._shard, numShards: this._numShards })
     this._shard = undefined
     this._numShards = undefined
     try {
@@ -112,8 +111,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
         }
       }
     } catch (error) {
-      console.error(error)
-      // ignore
+      this._debug('failed to stop:', error)
     }
   }
 
@@ -159,7 +157,7 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       }
       this._setShard({ shard, numShards })
     } catch (error) {
-      this._debug('failed to stop:', error)
+      this._debug('_onNotification failed:', error)
     }
   }
 
