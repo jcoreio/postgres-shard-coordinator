@@ -188,7 +188,6 @@ describe('ShardRegistrar', function () {
       reshardInterval,
     }
     const registrar1 = createRegistrar(options)
-
     await Promise.all([
       expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
         shard: 0,
@@ -197,12 +196,14 @@ describe('ShardRegistrar', function () {
       registrar1.start(),
     ])
     await registrar1.stop({ unregister: true })
+
+    const registrar2 = createRegistrar(options)
     await Promise.all([
-      expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
+      expect(emitted(registrar2, 'shardChanged')).to.eventually.deep.equal({
         shard: 0,
         numShards: 1,
       }),
-      registrar1.start(),
+      registrar2.start(),
     ])
   })
   it(`two clusters of registrars operating simultaneously`, async function (): Promise<void> {
