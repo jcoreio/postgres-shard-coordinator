@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import debug from 'debug'
 import { ShardReservationCluster } from './schema/ShardReservationCluster'
 import { ShardReservation } from './schema/ShardReservation'
+import { Clock, defaultClock } from './Clock'
 
 const RESHARD_DEBUG = debug.enabled('ShardRegistrar:reshard')
 
@@ -28,12 +29,41 @@ interface PgPool {
 }
 
 export type ShardRegistrarOptions = {
+  /**
+   * Name to use in debug logging
+   */
+  name?: string
+  /**
+   * The unique identifier of the shard cluster
+   */
   cluster: string
+  /**
+   * Database pool
+   */
   pool: PgPool
+  /**
+   * PgIpc for performing NOTIFY/LISTEN, it should be connected to the
+   * same database as `pool`
+   */
   ipc: PgIpc
+  /**
+   * The heartbeat interval, in seconds
+   */
   heartbeatInterval: number
+  /**
+   * Extra grace period, in seconds.  A shard holder won't be considered
+   * failed until `heartbeatInterval + gracePeriod` seconds since its last
+   * checkin
+   */
   gracePeriod: number
+  /**
+   * Maximum amount of time between reshard checks, in seconds
+   */
   reshardInterval: number
+  /**
+   * custom clock (for testing purposes)
+   */
+  clock?: Clock<any>
 }
 
 export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
@@ -44,8 +74,9 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   _ipc: PgIpc
   _shard: number | null | undefined
   _numShards: number | null | undefined
+  _clock: Clock<any>
   _running = false
-  _debug: any = debug(`ShardRegistrar:${this._holder.substring(0, 8)}`)
+  _debug: any
   _upsertedCluster = false
   _lastQuery: Promise<PgResult> | null | undefined
 
@@ -54,6 +85,10 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     this._options = options
     this._pool = options.pool
     this._ipc = options.ipc
+    this._clock = options.clock || defaultClock
+    this._debug = debug(
+      `ShardRegistrar:${this._holder.substring(0, 8)}${options.name ? `:${options.name}` : ''}`
+    )
   }
 
   _emit<Event extends keyof ShardRegistrarEvents>(
@@ -84,7 +119,8 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   async stop(options?: { unregister?: boolean }): Promise<void> {
     if (!this._running) return
     this._running = false
-    if (this._heartbeatTimeout != null) clearTimeout(this._heartbeatTimeout)
+    if (this._heartbeatTimeout != null)
+      this._clock.clearTimeout(this._heartbeatTimeout)
     const onlyShard = this._shard === 0 && this._numShards === 1
     this._shard = undefined
     this._numShards = undefined
@@ -158,12 +194,15 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   }
 
   _onHeartbeat = () => {
-    let nextTime = Date.now() + this._options.heartbeatInterval * 1000
+    let nextTime = this._clock.now + this._options.heartbeatInterval * 1000
     void this._register().then((reshardAt) => {
       if (reshardAt) nextTime = Math.min(nextTime, reshardAt.getTime())
-      const delay = Math.max(0, nextTime - Date.now())
+      const delay = Math.max(0, nextTime - this._clock.now)
       if (this._running) {
-        this._heartbeatTimeout = setTimeout(this._onHeartbeat, delay)
+        this._heartbeatTimeout = this._clock.setTimeout(
+          this._onHeartbeat,
+          delay
+        )
       }
     })
   }
@@ -193,17 +232,26 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
         await this._query(upsertClusterQuery, [cluster])
         this._upsertedCluster = true
       }
-      await this._query(registerQuery, [cluster, holder, interval])
+      await this._query(`SELECT register_shard($1, $2, $3, $4)`, [
+        cluster,
+        holder,
+        interval,
+        new Date(this._clock.now),
+      ])
       const {
         rows: [{ isCoordinator }],
-      } = await this._query(selectIsCoordinatorQuery, [holder, cluster])
+      } = await this._query(selectIsCoordinatorQuery, [
+        holder,
+        cluster,
+        new Date(this._clock.now),
+      ])
       let reshardAt: Date | null | undefined
       if (isCoordinator) {
         ;({
           rows: [{ reshardAt }],
         } = (await this._query(
-          `SELECT "reshard_ShardReservations"($1, $2::interval) AS "reshardAt";`,
-          [cluster, reshardInterval]
+          `SELECT "reshard_ShardReservations"($1, $2::interval, $3) AS "reshardAt";`,
+          [cluster, reshardInterval, new Date(this._clock.now)]
         )) as any)
         if (RESHARD_DEBUG) {
           const { rows } = await this._query(
@@ -215,7 +263,11 @@ export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
       }
       const {
         rows: [reservation],
-      } = await this._query(selectShardQuery, [cluster, holder])
+      } = await this._query(selectShardQuery, [
+        cluster,
+        holder,
+        new Date(this._clock.now),
+      ])
       if (
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         reservation &&
@@ -243,30 +295,6 @@ INSERT INTO ${ShardReservationCluster.tableName} (
   .trim()
   .replace(/\s+/g, ' ')
 
-const registerQuery = `
-INSERT INTO ${ShardReservation.tableName} (
-    ${ShardReservation.cluster},
-    ${ShardReservation.holder},
-    ${ShardReservation.expiresAt}
-  )
-  VALUES (
-    $1,
-    $2,
-    CURRENT_TIMESTAMP + $3::interval
-  )
-  ON CONFLICT (${ShardReservation.holder}) DO UPDATE
-    SET ${ShardReservation.expiresAt} = CURRENT_TIMESTAMP + $3::interval,
-      ${ShardReservation.shard} = CASE
-        WHEN ${ShardReservation.tableName}.${ShardReservation.expiresAt}
-          <= CURRENT_TIMESTAMP
-        THEN NULL
-        ELSE ${ShardReservation.tableName}.${ShardReservation.shard}
-      END
-  RETURNING ${ShardReservation.tableName};
-`
-  .trim()
-  .replace(/\s+/g, ' ')
-
 const unregisterQuery = `
 DELETE FROM ${ShardReservation.tableName}
   WHERE ${ShardReservation.cluster} = $1 AND ${ShardReservation.holder} = $2;
@@ -283,7 +311,7 @@ const selectIsCoordinatorQuery = `
 SELECT $1 = (
   SELECT ${ShardReservation.holder} FROM ${ShardReservation.tableName}
     WHERE ${ShardReservation.cluster} = $2
-      AND ${ShardReservation.expiresAt} > CURRENT_TIMESTAMP
+      AND ${ShardReservation.expiresAt} > $3
     ORDER BY ${ShardReservation.shard} NULLS LAST, ${ShardReservation.holder}
     LIMIT 1
   ) AS "isCoordinator";
@@ -293,14 +321,17 @@ SELECT $1 = (
 
 const selectShardQuery = `
 SELECT
-  ${ShardReservation.shard} AS shard,
+  (
+    SELECT ${ShardReservation.shard}
+    FROM ${ShardReservation.tableName}
+    WHERE ${ShardReservation.cluster} = $1
+      AND ${ShardReservation.holder} = $2
+      AND ${ShardReservation.expiresAt} > $3
+  ) AS shard,
   (
     SELECT COUNT(*)::int
     FROM ${ShardReservation.tableName}
     WHERE ${ShardReservation.cluster} = $1
-      AND (${ShardReservation.shard} IS NOT NULL AND ${ShardReservation.expiresAt} > CURRENT_TIMESTAMP)
-  ) AS "numShards"
-FROM ${ShardReservation.tableName}
-WHERE ${ShardReservation.cluster} = $1
-  AND ${ShardReservation.holder} = $2;
+      AND (${ShardReservation.shard} IS NOT NULL AND ${ShardReservation.expiresAt} > $3)
+  ) AS "numShards";
 `

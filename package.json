@@ -33,6 +33,7 @@
     "@jcoreio/toolchain-mocha": "^6.0.5",
     "@jcoreio/toolchain-semantic-release": "^6.0.5",
     "@jcoreio/toolchain-typescript": "^6.0.5",
+    "@sinonjs/fake-timers": "^15.4.0",
     "@types/chai": "^4.3.5",
     "@types/chai-as-promised": "^7.1.5",
     "@types/debug": "^4.1.12",

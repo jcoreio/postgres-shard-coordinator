@@ -17,6 +17,10 @@ import UmzugPostgresStorage from './util/UmzugPostgresStorage'
 import poll from '@jcoreio/poll'
 import { ShardReservation } from '../src/schema/ShardReservation'
 import { ShardReservationCluster } from '../src/schema/ShardReservationCluster'
+import { createClock } from '@sinonjs/fake-timers'
+import _debug from 'debug'
+
+const debug = _debug('ShardRegistrar:test')
 
 async function prepareTestDatabase(): Promise<void> {
   await poll(async (): Promise<void> => {
@@ -98,6 +102,15 @@ describe('ShardRegistrar', function () {
     const heartbeatInterval = 1
     const gracePeriod = 3
     const reshardInterval = 5
+    const clock = createClock(Date.now())
+    const tickSeconds = async (seconds: number) => {
+      while (seconds) {
+        await delay(10)
+        await clock.tickAsync(Math.min(seconds, 1) * 1000)
+        debug('ticked to', new Date(clock.now))
+        seconds = Math.max(seconds - 1, 0)
+      }
+    }
     const options = {
       pool,
       ipc,
@@ -105,10 +118,11 @@ describe('ShardRegistrar', function () {
       heartbeatInterval,
       gracePeriod,
       reshardInterval,
+      clock,
     }
-    const registrar1 = createRegistrar(options)
-    const registrar2 = createRegistrar(options)
-    const registrar3 = createRegistrar(options)
+    const registrar1 = createRegistrar({ ...options, name: 'registrar1' })
+    const registrar2 = createRegistrar({ ...options, name: 'registrar2' })
+    const registrar3 = createRegistrar({ ...options, name: 'registrar3' })
 
     await Promise.all([
       expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
@@ -116,6 +130,7 @@ describe('ShardRegistrar', function () {
         numShards: 1,
       }),
       registrar1.start(),
+      tickSeconds(reshardInterval),
     ])
 
     await Promise.all([
@@ -128,9 +143,10 @@ describe('ShardRegistrar', function () {
         numShards: 2,
       }),
       registrar2.start(),
+      tickSeconds(reshardInterval),
     ])
 
-    await delay(heartbeatInterval * 3000)
+    await tickSeconds(heartbeatInterval)
     expect(registrar1.shardInfo()).to.deep.equal({
       shard: 0,
       numShards: 2,
@@ -146,6 +162,7 @@ describe('ShardRegistrar', function () {
         numShards: 1,
       }),
       registrar1.stop(),
+      tickSeconds(reshardInterval),
     ])
 
     await Promise.all([
@@ -158,6 +175,7 @@ describe('ShardRegistrar', function () {
         numShards: 2,
       }),
       registrar1.start(),
+      tickSeconds(reshardInterval),
     ])
 
     await Promise.all([
@@ -174,13 +192,23 @@ describe('ShardRegistrar', function () {
         numShards: 3,
       }),
       registrar3.start(),
+      tickSeconds(reshardInterval),
     ])
   })
-  it(`single node unregister test`, async function () {
+  it('new nodes claim expired slots', async function (): Promise<void> {
     const cluster = 'a'
     const heartbeatInterval = 1
     const gracePeriod = 3
-    const reshardInterval = 5
+    const reshardInterval = 10
+    const clock = createClock(Date.now())
+    const tickSeconds = async (seconds: number) => {
+      while (seconds) {
+        await delay(10)
+        await clock.tickAsync(Math.min(seconds, 1) * 1000)
+        debug('ticked to', new Date(clock.now))
+        seconds = Math.max(seconds - 1, 0)
+      }
+    }
     const options = {
       pool,
       ipc,
@@ -188,24 +216,98 @@ describe('ShardRegistrar', function () {
       heartbeatInterval,
       gracePeriod,
       reshardInterval,
+      clock,
     }
-    const registrar1 = createRegistrar(options)
+    const registrar1 = createRegistrar({ ...options, name: 'registrar1' })
+    const registrar2 = createRegistrar({ ...options, name: 'registrar2' })
+    const registrar3 = createRegistrar({ ...options, name: 'registrar3' })
+
     await Promise.all([
       expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
         shard: 0,
         numShards: 1,
       }),
       registrar1.start(),
+      tickSeconds(10.5),
+    ])
+
+    await Promise.all([
+      expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
+        shard: 0,
+        numShards: 2,
+      }),
+      expect(emitted(registrar2, 'shardChanged')).to.eventually.deep.equal({
+        shard: 1,
+        numShards: 2,
+      }),
+      registrar2.start(),
+      tickSeconds(10.5),
+    ])
+
+    await tickSeconds(3)
+    expect(registrar1.shardInfo()).to.deep.equal({
+      shard: 0,
+      numShards: 2,
+    })
+    expect(registrar2.shardInfo()).to.deep.equal({
+      shard: 1,
+      numShards: 2,
+    })
+
+    await registrar1.stop()
+    await tickSeconds(4)
+
+    await Promise.all([
+      expect(emitted(registrar3, 'shardChanged')).to.eventually.deep.equal({
+        shard: 0,
+        numShards: 2,
+      }),
+      registrar3.start(),
+      tickSeconds(5),
+    ])
+  })
+  it(`single node unregister test`, async function () {
+    const cluster = 'a'
+    const heartbeatInterval = 1
+    const gracePeriod = 3
+    const reshardInterval = 5
+    const clock = createClock(Date.now())
+    const tickSeconds = async (seconds: number) => {
+      while (seconds) {
+        await delay(10)
+        await clock.tickAsync(Math.min(seconds, 1) * 1000)
+        debug('ticked to', new Date(clock.now))
+        seconds = Math.max(seconds - 1, 0)
+      }
+    }
+    const options = {
+      pool,
+      ipc,
+      cluster,
+      heartbeatInterval,
+      gracePeriod,
+      reshardInterval,
+      clock,
+    }
+    const registrar1 = createRegistrar({ ...options, name: 'registrar1' })
+    await Promise.all([
+      expect(emitted(registrar1, 'shardChanged')).to.eventually.deep.equal({
+        shard: 0,
+        numShards: 1,
+      }),
+      registrar1.start(),
+      tickSeconds(reshardInterval),
     ])
     await registrar1.stop({ unregister: true })
 
-    const registrar2 = createRegistrar(options)
+    const registrar2 = createRegistrar({ ...options, name: 'registrar2' })
     await Promise.all([
       expect(emitted(registrar2, 'shardChanged')).to.eventually.deep.equal({
         shard: 0,
         numShards: 1,
       }),
       registrar2.start(),
+      tickSeconds(reshardInterval),
     ])
   })
   it(`two clusters of registrars operating simultaneously`, async function (): Promise<void> {
@@ -213,24 +315,37 @@ describe('ShardRegistrar', function () {
     const gracePeriod = 3
     const reshardInterval = 5
     const numShards = 10
-    const clusterA = range(numShards).map(() =>
+    const clock = createClock(Date.now())
+    const tickSeconds = async (seconds: number) => {
+      while (seconds) {
+        await delay(10)
+        await clock.tickAsync(Math.min(seconds, 1) * 1000)
+        debug('ticked to', new Date(clock.now))
+        seconds = Math.max(seconds - 1, 0)
+      }
+    }
+    const clusterA = range(numShards).map((i) =>
       createRegistrar({
+        name: `clusterA[${i}]`,
         pool,
         ipc,
         cluster: 'a',
         heartbeatInterval,
         gracePeriod,
         reshardInterval,
+        clock,
       })
     )
-    const clusterB = range(numShards).map(() =>
+    const clusterB = range(numShards).map((i) =>
       createRegistrar({
+        name: `clusterB[${i}]`,
         pool,
         ipc,
         cluster: 'b',
         heartbeatInterval,
         gracePeriod,
         reshardInterval,
+        clock,
       })
     )
     const aEvents: Promise<{ shard: number; numShards: number }[]> =
@@ -261,6 +376,7 @@ describe('ShardRegistrar', function () {
       bEvents,
       ...clusterA.map((registrar) => registrar.start()),
       ...clusterB.map((registrar) => registrar.start()),
+      tickSeconds(reshardInterval),
     ])
 
     expect((await aEvents).map((e) => e.shard).sort()).to.deep.equal(
