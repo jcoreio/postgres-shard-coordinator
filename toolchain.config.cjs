@@ -1,11 +1,9 @@
-/* eslint-env node, es2018 */
-
 const path = require('path')
 const execa = require('@jcoreio/toolchain/util/execa.cjs')
 const defaultenv = require('defaultenv')
 
 module.exports = {
-  cjsBabelEnv: { forceAllTransforms: true },
+  cjsBabelEnv: { targets: { node: 24 } },
   outputEsm: false,
   scripts: {
     pretest: {

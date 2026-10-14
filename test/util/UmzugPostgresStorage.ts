@@ -1,13 +1,5 @@
-import { Client } from 'pg'
-
 type Config = {
-  database: {
-    user: string
-    host: string
-    database: string
-    password: string
-    port: number
-  }
+  pool: { query: (sql: string) => Promise<{ rows: Record<string, unknown>[] }> }
   column: string
   relation: string
 }
@@ -23,18 +15,12 @@ export default class UmzugPostgresStorage {
   }
 
   async query(sql: string) {
-    const client = new Client(this.config.database)
-    try {
-      await client.connect()
-      await client.query(`
+    await this.config.pool.query(`
         CREATE TABLE IF NOT EXISTS ${this.config.relation} (
             "${this.config.column}" character varying(255)
         );
       `)
-      return await client.query(sql)
-    } finally {
-      await client.end()
-    }
+    return await this.config.pool.query(sql)
   }
 
   async logMigration(migrationName: string) {
@@ -62,6 +48,6 @@ export default class UmzugPostgresStorage {
       FROM ${this.config.relation}
       ORDER BY "${this.config.column}" ASC;
     `)
-    return rows.map((row) => row[this.config.column])
+    return rows.map((row) => String(row[this.config.column]))
   }
 }

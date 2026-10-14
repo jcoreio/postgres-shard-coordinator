@@ -1,12 +1,8 @@
-/**
- * @flow
- * @prettier
- */
 import EventEmitter from '@jcoreio/typed-event-emitter'
 import { v4 as uuidv4 } from 'uuid'
 import debug from 'debug'
-import ShardReservationCluster from './schema/ShardReservationCluster'
-import ShardReservation from './schema/ShardReservation'
+import { ShardReservationCluster } from './schema/ShardReservationCluster'
+import { ShardReservation } from './schema/ShardReservation'
 
 const RESHARD_DEBUG = debug.enabled('ShardRegistrar:reshard')
 
@@ -40,7 +36,7 @@ export type ShardRegistrarOptions = {
   reshardInterval: number
 }
 
-export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
+export class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
   _options: ShardRegistrarOptions
   _heartbeatTimeout: NodeJS.Timeout | null | undefined
   _holder: string = uuidv4()
@@ -161,14 +157,15 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
     }
   }
 
-  _onHeartbeat: () => Promise<void> = async (): Promise<void> => {
+  _onHeartbeat = () => {
     let nextTime = Date.now() + this._options.heartbeatInterval * 1000
-    const reshardAt: Date | null | undefined = await this._register()
-    if (reshardAt) nextTime = Math.min(nextTime, reshardAt.getTime())
-    const delay = Math.max(0, nextTime - Date.now())
-    if (this._running) {
-      this._heartbeatTimeout = setTimeout(this._onHeartbeat, delay)
-    }
+    void this._register().then((reshardAt) => {
+      if (reshardAt) nextTime = Math.min(nextTime, reshardAt.getTime())
+      const delay = Math.max(0, nextTime - Date.now())
+      if (this._running) {
+        this._heartbeatTimeout = setTimeout(this._onHeartbeat, delay)
+      }
+    })
   }
 
   async _query(
@@ -220,9 +217,11 @@ export default class ShardRegistrar extends EventEmitter<ShardRegistrarEvents> {
         rows: [reservation],
       } = await this._query(selectShardQuery, [cluster, holder])
       if (
-        reservation?.shard != null &&
-        reservation?.numShards != null &&
-        reservation?.numShards > 0
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+        reservation &&
+        reservation.shard != null &&
+        reservation.numShards != null &&
+        reservation.numShards > 0
       ) {
         this._setShard(reservation as any)
       }

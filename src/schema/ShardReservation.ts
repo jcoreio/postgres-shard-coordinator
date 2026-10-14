@@ -1,9 +1,4 @@
-/**
- * @flow
- * @prettier
- */
-
-export default {
+export const ShardReservation = {
   tableName: '"ShardReservations"',
   cluster: '"cluster"',
   shard: 'shard',

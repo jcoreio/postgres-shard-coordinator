@@ -1,10 +1,6 @@
-/**
- * @flow
- * @prettier
- */
-
 import path from 'path'
 import fs from 'fs'
+
 const migrationsDir = path.join(__dirname, 'migrations')
 
 export type MigrationParams = {
@@ -16,7 +12,11 @@ export interface Migration {
   down(params: MigrationParams): Promise<any>
 }
 
-export default function umzugMigrationOptions(): {
+export function umzugMigrationOptions({
+  pool,
+}: {
+  pool: { query: (sql: string) => Promise<any> }
+}): {
   path: string
   pattern: RegExp
   customResolver(file: string): Migration
@@ -34,8 +34,8 @@ export default function umzugMigrationOptions(): {
         throw new Error(`${path.basename(file)}: down SQL not found`)
       }
       return {
-        up: ({ query }) => query(up),
-        down: ({ query }) => query(down),
+        up: () => pool.query(up),
+        down: () => pool.query(down),
       }
     },
   }

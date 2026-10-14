@@ -1,30 +1,29 @@
 # created by @jcoreio/toolchain-circle
 
 version: 2.1
+
+orbs:
+  codecov: codecov/codecov@4.1.0
 jobs:
   build:
     docker:
-      - image: cimg/node:20.10.0
-      - image: circleci/postgres:9.5-alpine
+      - image: cimg/node:24.14.1
+      - image: cimg/postgres:16.15
 
     steps:
       - checkout
-      - run:
-          name: Setup NPM Token
-          command: |
-            npm config set \
-              "//registry.npmjs.org/:_authToken=$NPM_TOKEN" \
-              "registry=https://registry.npmjs.org/"
       - run:
           name: Corepack enable
           command: sudo corepack enable
       - run:
           name: Install Dependencies
-          command: pnpm install --frozen-lockfile
+          command: |-
+            env "npm_config_//registry.npmjs.org/:_authToken=$NPM_TOKEN" pnpm install --frozen-lockfile
       - run:
           name: Prepublish
           command: |
             [[ $(netstat -tnlp | grep -F 'circleci-agent') ]] || pnpm run tc prepublish
+      - codecov/upload
       - run:
           name: Release
           command: |
@@ -35,5 +34,5 @@ workflows:
     jobs:
       - build:
           context:
-            - npm-release
+            - npm-readonly
             - github-release

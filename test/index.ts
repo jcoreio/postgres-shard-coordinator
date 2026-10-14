@@ -6,6 +6,7 @@ import {
 import { database } from './database'
 import { describe, it, after, afterEach, before, beforeEach } from 'mocha'
 import { expect } from 'chai'
+// @ts-expect-error not dealing with types for now
 import emitted from 'p-event'
 import delay from 'delay'
 import { range } from 'lodash'
@@ -14,8 +15,8 @@ import PgIpc from '@jcoreio/pg-ipc'
 import Umzug from 'umzug'
 import UmzugPostgresStorage from './util/UmzugPostgresStorage'
 import poll from '@jcoreio/poll'
-import ShardReservation from '../src/schema/ShardReservation'
-import ShardReservationCluster from '../src/schema/ShardReservationCluster'
+import { ShardReservation } from '../src/schema/ShardReservation'
+import { ShardReservationCluster } from '../src/schema/ShardReservationCluster'
 
 async function prepareTestDatabase(): Promise<void> {
   await poll(async (): Promise<void> => {
@@ -39,6 +40,7 @@ const pool = new Pool({ ...database })
 pool.on('error', (error) => console.error(error.stack))
 
 const ipc = new PgIpc({
+  // @ts-expect-error ugh
   newClient: () => new Client({ ...database }),
 })
 // eslint-disable-next-line no-console
@@ -54,25 +56,20 @@ beforeEach(async function (): Promise<void> {
   this.timeout(30000)
 
   const storageOptions = {
-    database,
+    pool,
     relation: '"SequelizeMeta"',
     column: 'name',
   }
 
   const umzug = new Umzug({
-    storage: new UmzugPostgresStorage({ storageOptions }) as any,
+    storage: new UmzugPostgresStorage(storageOptions),
+    // @ts-expect-error not worth messing with
     migrations: {
-      ...umzugMigrationOptions(),
-      params: [
-        {
-          query: (...args: Parameters<typeof pool['query']>) =>
-            pool.query(...args),
-        },
-      ],
+      ...umzugMigrationOptions({ pool }),
     },
   })
 
-  await umzug.up({})
+  await umzug.up()
 })
 
 after(() => Promise.all([pool.end(), ipc.end()]))
@@ -236,24 +233,28 @@ describe('ShardRegistrar', function () {
         reshardInterval,
       })
     )
-    const aEvents = Promise.all(
-      clusterA.map((registrar) =>
-        emitted(
-          registrar,
-          'shardChanged',
-          (e: { shard: number; numShards: number }) => e.numShards === numShards
+    const aEvents: Promise<{ shard: number; numShards: number }[]> =
+      Promise.all(
+        clusterA.map((registrar) =>
+          emitted(
+            registrar,
+            'shardChanged',
+            (e: { shard: number; numShards: number }) =>
+              e.numShards === numShards
+          )
         )
       )
-    )
-    const bEvents = Promise.all(
-      clusterB.map((registrar) =>
-        emitted(
-          registrar,
-          'shardChanged',
-          (e: { shard: number; numShards: number }) => e.numShards === numShards
+    const bEvents: Promise<{ shard: number; numShards: number }[]> =
+      Promise.all(
+        clusterB.map((registrar) =>
+          emitted(
+            registrar,
+            'shardChanged',
+            (e: { shard: number; numShards: number }) =>
+              e.numShards === numShards
+          )
         )
       )
-    )
 
     await Promise.all([
       aEvents,

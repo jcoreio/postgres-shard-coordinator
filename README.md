@@ -41,7 +41,7 @@ import { Client } from 'pg'
 import Umzug from 'umzug'
 import { umzugMigrationOptions } from '@jcoreio/postgres-shard-coordinator'
 
-export default async function migrate({ database }) {
+export default async function migrate(pool) {
   const umzug = new Umzug({
     storage: 'umzug-postgres-storage',
     storageOptions: {
@@ -49,10 +49,7 @@ export default async function migrate({ database }) {
       relation: '"SequelizeMeta"',
       column: 'name',
     },
-    migrations: {
-      ...umzugMigrationOptions(),
-      params: [{ query }],
-    },
+    migrations: umzugMigrationOptions(pool),
   })
 
   await umzug.up()
@@ -109,7 +106,7 @@ registrar.on('shardChanged', ({ shard, numShards }) => {
 registrar.on('error', (err) => console.error(err.stack))
 
 async function go() {
-  await migrate({ database })
+  await migrate(pool)
   await registrar.start()
 }
 
