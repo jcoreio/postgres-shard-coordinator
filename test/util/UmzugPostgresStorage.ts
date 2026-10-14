@@ -22,7 +22,7 @@ export default class UmzugPostgresStorage {
     }
   }
 
-  async query(sql) {
+  async query(sql: string) {
     const client = new Client(this.config.database)
     try {
       await client.connect()
@@ -37,7 +37,7 @@ export default class UmzugPostgresStorage {
     }
   }
 
-  async logMigration(migrationName) {
+  async logMigration(migrationName: string) {
     await this.query(`
       INSERT INTO ${this.config.relation}
         ("${this.config.column}")
@@ -49,7 +49,7 @@ export default class UmzugPostgresStorage {
     `)
   }
 
-  async unlogMigration(migrationName) {
+  async unlogMigration(migrationName: string) {
     await this.query(`
       DELETE FROM ${this.config.relation}
       WHERE "${this.config.column}" = '${migrationName}'

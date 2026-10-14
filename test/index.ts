@@ -63,7 +63,12 @@ beforeEach(async function (): Promise<void> {
     storage: new UmzugPostgresStorage({ storageOptions }) as any,
     migrations: {
       ...umzugMigrationOptions(),
-      params: [{ query: (...args) => pool.query(...args) }],
+      params: [
+        {
+          query: (...args: Parameters<typeof pool['query']>) =>
+            pool.query(...args),
+        },
+      ],
     },
   })
 
@@ -82,7 +87,7 @@ describe('ShardRegistrar', function () {
     await pool.query(`DELETE FROM ${ShardReservationCluster.tableName};`)
   })
   afterEach(async function (): Promise<void> {
-    await Promise.all(registrars.map((registrar) => registrar.stop()))
+    for (const registrar of registrars) await registrar.stop()
   })
 
   function createRegistrar(options: ShardRegistrarOptions): ShardRegistrar {
@@ -233,12 +238,20 @@ describe('ShardRegistrar', function () {
     )
     const aEvents = Promise.all(
       clusterA.map((registrar) =>
-        emitted(registrar, 'shardChanged', (e) => e.numShards === numShards)
+        emitted(
+          registrar,
+          'shardChanged',
+          (e: { shard: number; numShards: number }) => e.numShards === numShards
+        )
       )
     )
     const bEvents = Promise.all(
       clusterB.map((registrar) =>
-        emitted(registrar, 'shardChanged', (e) => e.numShards === numShards)
+        emitted(
+          registrar,
+          'shardChanged',
+          (e: { shard: number; numShards: number }) => e.numShards === numShards
+        )
       )
     )
 
