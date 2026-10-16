@@ -51,13 +51,13 @@ const ipc = new PgIpc({
 ipc.on('error', (error) => console.error(error.stack))
 
 before(async function (): Promise<void> {
-  this.timeout(30000)
+  this.timeout(5000)
 
   await prepareTestDatabase()
 })
 
 beforeEach(async function (): Promise<void> {
-  this.timeout(30000)
+  this.timeout(5000)
 
   const storageOptions = {
     pool,
@@ -79,7 +79,7 @@ beforeEach(async function (): Promise<void> {
 after(() => Promise.all([pool.end(), ipc.end()]))
 
 describe('ShardRegistrar', function () {
-  this.timeout(30000)
+  this.timeout(5000)
   let registrars: ShardRegistrar[] = []
 
   beforeEach(async function (): Promise<void> {
