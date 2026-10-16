@@ -112,7 +112,7 @@ LANGUAGE plpgsql;
 
 -- down
 
-DROP FUNCTION register_shard(text, text, interval, timestamptz);
+DROP FUNCTION register_shard(text, uuid, interval, timestamptz);
 
 CREATE OR REPLACE FUNCTION "reshard_ShardReservations"(
   target_cluster text,
